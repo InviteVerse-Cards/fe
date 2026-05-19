@@ -9,6 +9,7 @@ const props = defineProps<{
   theme: ThemeConfig
   isPreview?: boolean
   guestName?: string
+  category?: string
 }>()
 
 const cfg = computed(() => props.config as HeroConfig)
@@ -68,6 +69,19 @@ const effectiveLayout = computed(() =>
   ?? (cfg.value.layout_variant as string | undefined)  // backward compat
   ?? 'botanical'
 )
+
+const isCelebrantMode = computed(() =>
+  props.category === 'birthday' || props.category === 'baby_shower' || props.category === 'house_warming'
+  || !!(cfg.value as Record<string, unknown>).celebrant_name
+)
+const celebrantNameValue = computed(() =>
+  (cfg.value as Record<string, unknown>).celebrant_name as string | undefined
+)
+const celebrantFallback = computed(() => {
+  if (props.category === 'baby_shower') return 'Bé Yêu'
+  if (props.category === 'house_warming') return 'Gia Đình'
+  return 'Nhân Vật Chính'
+})
 
 const romanize = (num: number) => {
   const lookup: { [key: string]: number } = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1}
@@ -142,7 +156,7 @@ const romanDate = computed(() => {
       <!-- Tagline -->
       <p
         v-if="cfg.tagline"
-        class="mb-4 text-sm uppercase tracking-[0.32em] animate-fade-in"
+        class="mb-4 text-sm tracking-[0.32em] animate-fade-in"
         :style="{ color: theme.accent_color, animationDelay: '0.25s' }"
       >
         {{ cfg.tagline }}
@@ -383,7 +397,7 @@ const romanDate = computed(() => {
     <div class="relative z-10 flex w-full max-w-2xl flex-col items-center border p-12 text-center backdrop-blur-sm"
          :style="{ borderColor: `${theme.accent_color}40`, backgroundColor: 'rgba(0,0,0,0.4)' }">
       
-      <p v-if="cfg.tagline" class="mb-8 text-xs uppercase tracking-[0.3em]" :style="{ color: theme.accent_color }">
+      <p v-if="cfg.tagline" class="mb-8 text-xs tracking-[0.3em]" :style="{ color: theme.accent_color }">
         {{ cfg.tagline }}
       </p>
 
@@ -427,11 +441,11 @@ const romanDate = computed(() => {
 
     <div class="relative z-10 flex flex-col items-center text-center px-6">
       <FloralDecoration variant="divider" color="#ffffff" :opacity="0.8" :size="200" class="mb-4" />
-      <h1 class="leading-tight" :class="[nameSize, nameFontWeight]">
+      <h1 class="leading-tight" :class="[nameSize, nameFontWeight]" style="text-shadow: 0 2px 24px rgba(0,0,0,0.5), 0 1px 8px rgba(0,0,0,0.35)">
         {{ cfg.groom_name || 'Chú Rể' }}
       </h1>
-      <p class="my-4 italic" :class="andSize">&amp;</p>
-      <h1 class="leading-tight" :class="[nameSize, nameFontWeight]">
+      <p class="my-4 italic" :class="andSize" style="text-shadow: 0 1px 12px rgba(0,0,0,0.4)">&amp;</p>
+      <h1 class="leading-tight" :class="[nameSize, nameFontWeight]" style="text-shadow: 0 2px 24px rgba(0,0,0,0.5), 0 1px 8px rgba(0,0,0,0.35)">
         {{ cfg.bride_name || 'Cô Dâu' }}
       </h1>
       <FloralDecoration variant="divider" color="#ffffff" :opacity="0.8" :size="200" class="mt-4 rotate-180" />
@@ -463,7 +477,7 @@ const romanDate = computed(() => {
     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
     <div class="relative z-10 px-8 text-left max-w-3xl mx-auto w-full">
-      <p v-if="cfg.tagline" class="mb-2 text-sm uppercase tracking-widest drop-shadow-md">
+      <p v-if="cfg.tagline" class="mb-2 text-sm tracking-widest drop-shadow-md">
         {{ cfg.tagline }}
       </p>
       <h1 class="leading-tight drop-shadow-lg" :class="[nameSize, nameFontWeight]">
@@ -490,11 +504,11 @@ const romanDate = computed(() => {
   ═══════════════════════════════════════════════════════ -->
   <section
     v-else-if="effectiveLayout === 'birthday-playful' || effectiveLayout === 'birthday-elegant' || effectiveLayout === 'baby-soft'"
-    class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
+    class="relative flex flex-col items-center overflow-hidden py-16"
     :style="{ fontFamily: `'${theme.font_heading}', sans-serif`, color: theme.text_color }"
   >
     <div class="relative z-10 flex flex-col items-center text-center p-8 bg-white/80 backdrop-blur-md rounded-3xl mx-4 shadow-xl w-full max-w-xl">
-      <p v-if="cfg.tagline" class="mb-4 text-lg font-bold uppercase tracking-widest" :style="{ color: theme.accent_color }">
+      <p v-if="cfg.tagline" class="mb-4 text-lg font-bold tracking-widest" :style="{ color: theme.accent_color }">
         {{ cfg.tagline }}
       </p>
       
@@ -511,7 +525,7 @@ const romanDate = computed(() => {
         {{ new Date(cfg.event_date).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' }) }}
       </p>
     </div>
-    <div class="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
+    <div class="mt-8 flex justify-center animate-bounce">
       <svg class="h-7 w-7 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
       </svg>
@@ -524,7 +538,7 @@ const romanDate = computed(() => {
   ═══════════════════════════════════════════════════════ -->
   <section
     v-else
-    class="relative flex min-h-screen items-center justify-center overflow-hidden"
+    :class="['relative flex items-center justify-center overflow-hidden', isCelebrantMode ? '' : 'min-h-screen']"
     :style="{ fontFamily: `'${theme.font_heading}', serif`, backgroundColor: theme.background_color }"
   >
     <!-- Parallax background -->
@@ -603,8 +617,8 @@ const romanDate = computed(() => {
       <!-- Tagline -->
       <p
         v-if="cfg.tagline"
-        class="mb-6 text-sm uppercase tracking-[0.35em] opacity-80 animate-fade-in"
-        :style="{ fontFamily: `'${theme.font_body}', sans-serif`, animationDelay: '0.2s' }"
+        class="mb-6 text-sm tracking-[0.35em] opacity-80 animate-fade-in"
+        :style="{ fontFamily: `'${theme.font_body}', sans-serif`, animationDelay: '0.2s', textShadow: cfg.background_url ? '0 1px 12px rgba(0,0,0,0.5)' : undefined }"
       >
         {{ cfg.tagline }}
       </p>
@@ -631,8 +645,23 @@ const romanDate = computed(() => {
         </div>
       </div>
 
-      <!-- Names container (respecting display_order) -->
+      <!-- Celebrant name (birthday / non-wedding) -->
+      <div v-if="isCelebrantMode" class="flex flex-col items-center">
+        <h1
+          class="leading-tight animate-fade-in text-center"
+          :class="[nameSize, nameFontWeight]"
+          :style="{
+            animationDelay: cfg.couple_photo_url ? '0.6s' : '0.5s',
+            textShadow: cfg.background_url ? '0 2px 24px rgba(0,0,0,0.5), 0 1px 8px rgba(0,0,0,0.35)' : undefined,
+          }"
+        >
+          {{ celebrantNameValue || celebrantFallback }}
+        </h1>
+      </div>
+
+      <!-- Names container for wedding (respecting display_order) -->
       <div
+        v-else
         class="flex flex-col items-center"
         :class="cfg.display_order === 'bride_first' ? 'flex-col-reverse' : 'flex-col'"
       >
@@ -640,7 +669,7 @@ const romanDate = computed(() => {
         <div class="flex flex-col items-center">
           <p
             v-if="cfg.groom_title"
-            class="mb-1 text-xs uppercase tracking-widest opacity-60"
+            class="mb-1 text-xs tracking-widest opacity-60"
             :style="{ fontFamily: `'${theme.font_body}', sans-serif` }"
           >
             {{ cfg.groom_title }}
@@ -648,7 +677,10 @@ const romanDate = computed(() => {
           <h1
             class="leading-tight animate-fade-in"
             :class="[nameSize, nameFontWeight]"
-            :style="{ animationDelay: cfg.couple_photo_url ? '0.6s' : '0.5s' }"
+            :style="{
+              animationDelay: cfg.couple_photo_url ? '0.6s' : '0.5s',
+              textShadow: cfg.background_url ? '0 2px 24px rgba(0,0,0,0.5), 0 1px 8px rgba(0,0,0,0.35)' : undefined,
+            }"
           >
             {{ cfg.groom_name || 'Chú Rể' }}
           </h1>
@@ -681,7 +713,7 @@ const romanDate = computed(() => {
         <div class="flex flex-col items-center">
           <p
             v-if="cfg.bride_title"
-            class="mb-1 text-xs uppercase tracking-widest opacity-60"
+            class="mb-1 text-xs tracking-widest opacity-60"
             :style="{ fontFamily: `'${theme.font_body}', sans-serif` }"
           >
             {{ cfg.bride_title }}
@@ -689,7 +721,10 @@ const romanDate = computed(() => {
           <h1
             class="leading-tight animate-fade-in"
             :class="[nameSize, nameFontWeight]"
-            style="animation-delay: 1.2s"
+            :style="{
+              animationDelay: '1.2s',
+              textShadow: cfg.background_url ? '0 2px 24px rgba(0,0,0,0.5), 0 1px 8px rgba(0,0,0,0.35)' : undefined,
+            }"
           >
             {{ cfg.bride_name || 'Cô Dâu' }}
           </h1>
@@ -728,8 +763,12 @@ const romanDate = computed(() => {
       </div>
     </div>
 
-    <!-- Scroll chevron -->
-    <div class="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
+    <!-- Scroll chevron: absolute for wedding (fills screen), inline for celebrant (compact) -->
+    <div
+      :class="isCelebrantMode
+        ? 'mt-6 flex justify-center animate-bounce'
+        : 'absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce'"
+    >
       <svg
         class="h-7 w-7 opacity-50"
         :style="{ color: content_color }"

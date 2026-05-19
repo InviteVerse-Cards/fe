@@ -110,6 +110,7 @@ watch(() => props.invitation.theme_config, (theme) => {
       :config="section.config"
       :theme="invitation.theme_config"
       :slug="invitation.slug"
+      :category="invitation.category"
       :guest-name="section.section_type === 'hero' ? guestName : undefined"
     />
   </component>

@@ -3,16 +3,40 @@ import { computed } from 'vue'
 import type { ThemeConfig } from '@/types/section.types'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 
-const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean }>()
+const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean; category?: string }>()
 
 const title = computed(() => (props.config.title as string | undefined) || 'Lời chúc')
 
-// Preview placeholder wishes
-const PREVIEW_WISHES = [
-  { name: 'Nguyễn Thị Hương', initial: 'H', message: 'Chúc hai bạn trăm năm hạnh phúc, mãi mãi yêu thương nhau! Hy vọng cuộc sống hôn nhân sẽ luôn tràn đầy niềm vui và bình an.', time: '2 giờ trước' },
-  { name: 'Trần Văn Minh', initial: 'M', message: 'Xin chúc mừng đám cưới! Chúc đôi uyên ương luôn hòa thuận, hạnh phúc bên nhau đến đầu bạc răng long.', time: '5 giờ trước' },
-  { name: 'Lê Thu Phương', initial: 'P', message: 'Chúc mừng hạnh phúc! Một tình yêu đẹp xứng đáng có một lễ cưới thật đặc biệt. Chúc hai bạn mãi mãi bên nhau!', time: '1 ngày trước' },
+const PREVIEW_WISHES_WEDDING = [
+  { name: 'Nguyễn Thị Hương', message: 'Chúc hai bạn trăm năm hạnh phúc, mãi mãi yêu thương nhau! Hy vọng cuộc sống hôn nhân sẽ luôn tràn đầy niềm vui và bình an.', time: '2 giờ trước' },
+  { name: 'Trần Văn Minh', message: 'Xin chúc mừng ngày trọng đại! Chúc đôi uyên ương luôn hòa thuận, hạnh phúc bên nhau đến đầu bạc răng long.', time: '5 giờ trước' },
+  { name: 'Lê Thu Phương', message: 'Chúc mừng hạnh phúc! Một tình yêu đẹp xứng đáng có một ngày lễ thật đặc biệt. Chúc hai bạn mãi mãi bên nhau!', time: '1 ngày trước' },
 ]
+
+const PREVIEW_WISHES_BIRTHDAY = [
+  { name: 'Nguyễn Thị Hương', message: 'Chúc mừng sinh nhật! Chúc bạn luôn vui vẻ, mạnh khỏe và đạt được mọi điều mình mong muốn trong năm mới này.', time: '2 giờ trước' },
+  { name: 'Trần Văn Minh', message: 'Happy Birthday! Chúc bạn ngày càng trẻ đẹp, thành công và có thật nhiều niềm vui bên gia đình và bạn bè.', time: '5 giờ trước' },
+  { name: 'Lê Thu Phương', message: 'Sinh nhật vui vẻ nha! Chúc bạn có một bữa tiệc thật tuyệt vời và luôn giữ mãi nụ cười rạng rỡ như hôm nay!', time: '1 ngày trước' },
+]
+
+const PREVIEW_WISHES_BABY_SHOWER = [
+  { name: 'Nguyễn Thị Hương', message: 'Chúc bé yêu mau ăn chóng lớn, thật khỏe mạnh và hay cười! Chúc gia đình luôn hạnh phúc và tràn đầy tiếng cười.', time: '2 giờ trước' },
+  { name: 'Trần Văn Minh', message: 'Chúc mừng bé tròn 1 tuổi! Chúc bé ngoan ngoãn, thông minh và khỏe mạnh. Chúc bố mẹ luôn bình an bên con.', time: '5 giờ trước' },
+  { name: 'Lê Thu Phương', message: 'Bé thật đáng yêu! Chúc bé lớn lên khỏe mạnh, học giỏi và luôn được yêu thương bởi mọi người xung quanh.', time: '1 ngày trước' },
+]
+
+const PREVIEW_WISHES_HOUSE_WARMING = [
+  { name: 'Nguyễn Thị Hương', message: 'Chúc mừng tân gia! Chúc gia đình luôn hạnh phúc, bình an và mọi điều tốt đẹp sẽ đến trong ngôi nhà mới.', time: '2 giờ trước' },
+  { name: 'Trần Văn Minh', message: 'An khang thịnh vượng! Chúc gia đình vạn sự như ý trong ngôi nhà mới, cuộc sống ngày càng sung túc và viên mãn.', time: '5 giờ trước' },
+  { name: 'Lê Thu Phương', message: 'Nhà mới phước mới! Chúc gia đình luôn ấm áp, hòa thuận và ngôi nhà mãi là tổ ấm hạnh phúc của mọi người.', time: '1 ngày trước' },
+]
+
+const previewWishes = computed(() => {
+  if (props.category === 'birthday') return PREVIEW_WISHES_BIRTHDAY
+  if (props.category === 'baby_shower') return PREVIEW_WISHES_BABY_SHOWER
+  if (props.category === 'house_warming' || props.category === 'housewarming') return PREVIEW_WISHES_HOUSE_WARMING
+  return PREVIEW_WISHES_WEDDING
+})
 
 function initials(name: string) {
   return name
@@ -56,7 +80,7 @@ function avatarBg(index: number) { return AVATAR_BG[index % AVATAR_BG.length] }
       <!-- Wish cards -->
       <div class="space-y-5">
         <div
-          v-for="(wish, i) in PREVIEW_WISHES"
+          v-for="(wish, i) in previewWishes"
           :key="i"
           class="flex gap-4 rounded-2xl p-5 shadow-sm transition-shadow hover:shadow-md"
           :style="{ backgroundColor: theme.primary_color + '0D', border: `1px solid ${theme.primary_color}22` }"

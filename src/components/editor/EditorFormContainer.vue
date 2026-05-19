@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useEditorStore } from '@/stores/editor.store'
 import { SECTION_LABELS, SECTION_ICONS } from '@/types/section.types'
@@ -19,6 +20,11 @@ import FamilyInfoForm from './forms/FamilyInfoForm.vue'
 import BankTransferForm from './forms/BankTransferForm.vue'
 import CoupleImagesForm from './forms/CoupleImagesForm.vue'
 
+const props = defineProps<{
+  allowedSections?: SectionType[]
+  category?: string
+}>()
+
 const editorStore = useEditorStore()
 const { sections } = storeToRefs(editorStore)
 
@@ -37,14 +43,19 @@ const formComponents: Record<string, unknown> = {
   timeline: TimelineForm,
 }
 
-// Sections that are expanded by default on load
 const defaultOpenSections: SectionType[] = ['hero', 'event_info']
+
+const visibleSections = computed(() => {
+  const sorted = [...sections.value].sort((a, b) => a.sort_order - b.sort_order)
+  if (!props.allowedSections) return sorted
+  return sorted.filter(s => props.allowedSections!.includes(s.section_type as SectionType))
+})
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-2xl px-4 py-8 space-y-4">
+  <div class="mx-auto w-full max-w-2xl space-y-4 px-4 py-8">
     <AccordionPanel
-      v-for="section in [...sections].sort((a, b) => a.sort_order - b.sort_order)"
+      v-for="section in visibleSections"
       :key="section.section_type"
       :title="SECTION_LABELS[section.section_type as SectionType] || section.section_type"
       :icon="SECTION_ICONS[section.section_type as SectionType] || '📌'"
@@ -57,6 +68,7 @@ const defaultOpenSections: SectionType[] = ['hero', 'event_info']
         v-if="formComponents[section.section_type]"
         :config="section.config"
         :section-type="section.section_type"
+        :category="category"
       />
       <div v-else class="py-4 text-center text-sm text-gray-400">
         Chưa có form cho section này

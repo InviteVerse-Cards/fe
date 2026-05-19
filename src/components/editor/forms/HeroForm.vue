@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useEditorStore } from '@/stores/editor.store'
 import type { HeroConfig } from '@/types/section.types'
 import AppInput from '@/components/common/AppInput.vue'
 import ImageUploader from '@/components/editor/ImageUploader.vue'
 
-const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
+const props = defineProps<{ config: Record<string, unknown>; sectionType: string; category?: string }>()
 const editorStore = useEditorStore()
 const form = ref<HeroConfig>({
   display_order: 'groom_first',
@@ -20,87 +20,125 @@ function update(field: keyof HeroConfig, value: unknown) {
   form.value[field] = value as never
   editorStore.updateSectionConfig('hero', { [field]: value })
 }
+
+const isWeddingMode = computed(() =>
+  !props.category || props.category === 'wedding'
+)
+
+const celebrantLabel = computed(() => {
+  if (props.category === 'baby_shower') return 'Tên bé'
+  if (props.category === 'house_warming' || props.category === 'housewarming') return 'Tên gia đình / chủ nhà'
+  return 'Tên nhân vật chính'
+})
+
+const celebrantPlaceholder = computed(() => {
+  if (props.category === 'baby_shower') return 'Nguyễn Minh Khoa'
+  if (props.category === 'house_warming' || props.category === 'housewarming') return 'Gia đình Trần Văn Hùng'
+  return 'Nguyễn Bảo Ngọc'
+})
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Họ tên đầy đủ -->
-    <div class="grid grid-cols-2 gap-4">
-      <AppInput
-        label="Họ tên chú rể"
-        :model-value="form.groom_name ?? ''"
-        placeholder="Đoàn Thanh Tuấn"
-        @update:model-value="update('groom_name', $event)"
-      />
-      <AppInput
-        label="Họ tên cô dâu"
-        :model-value="form.bride_name ?? ''"
-        placeholder="Ngô Thị Hằng Nga"
-        @update:model-value="update('bride_name', $event)"
-      />
-    </div>
-
-    <!-- Tên ngắn (auto-generated hint) -->
-    <div class="grid grid-cols-2 gap-4">
-      <AppInput
-        label="Tên ngắn chú rể"
-        :model-value="form.groom_short_name ?? ''"
-        placeholder="Thanh Tuấn"
-        @update:model-value="update('groom_short_name', $event)"
-      />
-      <AppInput
-        label="Tên ngắn cô dâu"
-        :model-value="form.bride_short_name ?? ''"
-        placeholder="Hằng Nga"
-        @update:model-value="update('bride_short_name', $event)"
-      />
-    </div>
-
-    <!-- Danh xưng -->
-    <div class="grid grid-cols-2 gap-4">
-      <AppInput
-        label="Danh xưng chú rể"
-        :model-value="form.groom_title ?? ''"
-        placeholder="Trưởng Nam"
-        @update:model-value="update('groom_title', $event)"
-      />
-      <AppInput
-        label="Danh xưng cô dâu"
-        :model-value="form.bride_title ?? ''"
-        placeholder="Út Nữ"
-        @update:model-value="update('bride_title', $event)"
-      />
-    </div>
-
-    <!-- Thứ tự hiển thị -->
-    <div class="space-y-2">
-      <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Thứ tự hiển thị</p>
-      <div class="grid grid-cols-2 gap-3">
-        <button
-          class="rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all"
-          :class="form.display_order === 'groom_first'
-            ? 'border-rose-400 bg-rose-50 text-rose-700'
-            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
-          @click="update('display_order', 'groom_first')"
-        >
-          Nhà trai trước
-        </button>
-        <button
-          class="rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all"
-          :class="form.display_order === 'bride_first'
-            ? 'border-rose-400 bg-rose-50 text-rose-700'
-            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
-          @click="update('display_order', 'bride_first')"
-        >
-          Nhà gái trước
-        </button>
+    <!-- Wedding mode: bride + groom names -->
+    <template v-if="isWeddingMode">
+      <!-- Họ tên đầy đủ -->
+      <div class="grid grid-cols-2 gap-4">
+        <AppInput
+          label="Họ tên chú rể"
+          :model-value="form.groom_name ?? ''"
+          placeholder="Đoàn Thanh Tuấn"
+          @update:model-value="update('groom_name', $event)"
+        />
+        <AppInput
+          label="Họ tên cô dâu"
+          :model-value="form.bride_name ?? ''"
+          placeholder="Ngô Thị Hằng Nga"
+          @update:model-value="update('bride_name', $event)"
+        />
       </div>
-      <p class="text-xs text-gray-400">
-        Hiển thị tên {{ form.display_order === 'groom_first' ? 'chú rể và nhà trai' : 'cô dâu và nhà gái' }} trước trên thiệp
-      </p>
-    </div>
 
-    <!-- Tagline -->
+      <!-- Tên ngắn -->
+      <div class="grid grid-cols-2 gap-4">
+        <AppInput
+          label="Tên ngắn chú rể"
+          :model-value="form.groom_short_name ?? ''"
+          placeholder="Thanh Tuấn"
+          @update:model-value="update('groom_short_name', $event)"
+        />
+        <AppInput
+          label="Tên ngắn cô dâu"
+          :model-value="form.bride_short_name ?? ''"
+          placeholder="Hằng Nga"
+          @update:model-value="update('bride_short_name', $event)"
+        />
+      </div>
+
+      <!-- Danh xưng -->
+      <div class="grid grid-cols-2 gap-4">
+        <AppInput
+          label="Danh xưng chú rể"
+          :model-value="form.groom_title ?? ''"
+          placeholder="Trưởng Nam"
+          @update:model-value="update('groom_title', $event)"
+        />
+        <AppInput
+          label="Danh xưng cô dâu"
+          :model-value="form.bride_title ?? ''"
+          placeholder="Út Nữ"
+          @update:model-value="update('bride_title', $event)"
+        />
+      </div>
+
+      <!-- Thứ tự hiển thị -->
+      <div class="space-y-2">
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Thứ tự hiển thị</p>
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            class="rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all"
+            :class="form.display_order === 'groom_first'
+              ? 'border-rose-400 bg-rose-50 text-rose-700'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
+            @click="update('display_order', 'groom_first')"
+          >
+            Nhà trai trước
+          </button>
+          <button
+            class="rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all"
+            :class="form.display_order === 'bride_first'
+              ? 'border-rose-400 bg-rose-50 text-rose-700'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
+            @click="update('display_order', 'bride_first')"
+          >
+            Nhà gái trước
+          </button>
+        </div>
+        <p class="text-xs text-gray-400">
+          Hiển thị tên {{ form.display_order === 'groom_first' ? 'chú rể và nhà trai' : 'cô dâu và nhà gái' }} trước trên thiệp
+        </p>
+      </div>
+    </template>
+
+    <!-- Non-wedding mode: single celebrant name -->
+    <template v-else>
+      <AppInput
+        :label="celebrantLabel"
+        :model-value="(form as Record<string, unknown>).celebrant_name as string ?? ''"
+        :placeholder="celebrantPlaceholder"
+        @update:model-value="update('celebrant_name' as keyof HeroConfig, $event)"
+      />
+
+      <AppInput
+        v-if="category === 'birthday'"
+        label="Tuổi (milestone)"
+        type="number"
+        :model-value="String((form as Record<string, unknown>).age_milestone ?? '')"
+        placeholder="18"
+        @update:model-value="update('age_milestone' as keyof HeroConfig, $event ? Number($event) : undefined)"
+      />
+    </template>
+
+    <!-- Tagline (shared) -->
     <AppInput
       label="Lời chào / Tagline"
       :model-value="form.tagline ?? ''"

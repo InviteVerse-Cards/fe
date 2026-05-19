@@ -7,14 +7,26 @@ import AppInput from '@/components/common/AppInput.vue'
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
 const editorStore = useEditorStore()
 
-const form = ref<FamilyInfoConfig>(JSON.parse(JSON.stringify(props.config as unknown as FamilyInfoConfig)) || {
+const DEFAULTS: FamilyInfoConfig = {
   title: '',
   groom_family: { family_name: 'Nhà Trai', father: { title: 'Ông', name: '' }, mother: { title: 'Bà', name: '' } },
   bride_family: { family_name: 'Nhà Gái', father: { title: 'Ông', name: '' }, mother: { title: 'Bà', name: '' } },
-})
+}
+
+function mergeConfig(cfg: Record<string, unknown>): FamilyInfoConfig {
+  const c = cfg as Partial<FamilyInfoConfig>
+  return {
+    ...DEFAULTS,
+    ...c,
+    groom_family: { ...DEFAULTS.groom_family, ...(c.groom_family ?? {}) },
+    bride_family: { ...DEFAULTS.bride_family, ...(c.bride_family ?? {}) },
+  }
+}
+
+const form = ref<FamilyInfoConfig>(mergeConfig(props.config))
 
 watch(() => props.config, (newCfg) => {
-  form.value = JSON.parse(JSON.stringify(newCfg as unknown as FamilyInfoConfig))
+  form.value = mergeConfig(newCfg)
 }, { deep: true })
 
 function update() {

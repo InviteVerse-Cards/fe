@@ -30,23 +30,9 @@ const sampleDate = (() => {
   return d.toISOString().split('T')[0]
 })()
 
-const isBirthday = computed(() => {
-  const slug = templateData.value?.slug || ''
-  const layoutType = (templateData.value?.default_config as any)?.layout_type || ''
-  return slug.startsWith('sn-') || layoutType.startsWith('birthday-')
-})
-
-const isBaby = computed(() => {
-  const slug = templateData.value?.slug || ''
-  const layoutType = (templateData.value?.default_config as any)?.layout_type || ''
-  return slug.startsWith('baby-') || layoutType === 'baby-soft'
-})
-
-const isHouseWarming = computed(() => {
-  const slug = templateData.value?.slug || ''
-  const layoutType = (templateData.value?.default_config as any)?.layout_type || ''
-  return slug.startsWith('hw-') || layoutType === 'house-warm'
-})
+const isBirthday = computed(() => templateData.value?.category === 'birthday')
+const isBaby = computed(() => templateData.value?.category === 'baby_shower')
+const isHouseWarming = computed(() => templateData.value?.category === 'house_warming')
 
 const envelopeCoupleName = computed(() => {
   if (isBirthday.value) return 'Bảo Ngọc'
@@ -55,12 +41,11 @@ const envelopeCoupleName = computed(() => {
   return 'Kim Chi & Anh Tú'
 })
 
-// Build a fake PublicInvitation from the template's default_config + sample data
+// Build a fake PublicInvitation from the template's sections + theme_config + sample data
 const demoInvitation = computed<PublicInvitation | null>(() => {
   if (!templateData.value) return null
-  const { default_config } = templateData.value
 
-  const sections: Section[] = (default_config.sections as Section[])
+  const sections: Section[] = (templateData.value.sections as Section[])
     .map(s => {
       // Patch date to sampleDate so the countdown works and ceremonies have a future date
       let config = { ...s.config as Record<string, unknown> }
@@ -86,9 +71,10 @@ const demoInvitation = computed<PublicInvitation | null>(() => {
       if (s.section_type === 'music') {
         config.enabled = true
         config.autoplay = true
-        if (defaultTrack.value) {
-          config.track_name = defaultTrack.value.name
-          config.track_url = defaultTrack.value.url
+        const track = defaultTrack.value ?? templateData.value!.default_music_track
+        if (track) {
+          config.track_name = track.name
+          config.track_url = track.url
         }
       }
 
@@ -106,7 +92,7 @@ const demoInvitation = computed<PublicInvitation | null>(() => {
     title: templateData.value.name,
     category: isBirthday.value ? 'birthday' : isBaby.value ? 'baby_shower' : isHouseWarming.value ? 'house_warming' : 'wedding',
     status: 'published',
-    theme_config: default_config.theme,
+    theme_config: templateData.value.theme_config,
     sections,
     watermark: false,
     view_count: 0,

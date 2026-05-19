@@ -77,6 +77,30 @@ export interface AdminTemplate {
   created_at?: string
 }
 
+export interface AdminTemplateSection {
+  id?: number
+  section_type: string
+  sort_order: number
+  is_enabled: boolean
+  config: Record<string, unknown>
+}
+
+export interface AdminTemplateFull {
+  id: number
+  uuid: string
+  slug: string
+  name: string
+  description: string | null
+  thumbnail_url: string | null
+  plan_required: 'free' | 'pro'
+  category: string
+  use_count: number
+  is_active: boolean
+  theme_config: Record<string, unknown>
+  sections: AdminTemplateSection[]
+  default_music_track: { id: number; name: string; url: string } | null
+}
+
 export const adminService = {
   // ── Stats ──────────────────────────────────────────────
   async getStats(): Promise<AdminStats> {
@@ -194,6 +218,23 @@ export const adminService = {
 
   async deleteTemplate(uuid: string): Promise<void> {
     await api.delete(`/admin/templates/${uuid}`)
+  },
+
+  async getTemplateFull(uuid: string): Promise<AdminTemplateFull> {
+    const { data } = await api.get(`/admin/templates/${uuid}/full`)
+    return data.data
+  },
+
+  async updateTemplateTheme(uuid: string, themeConfig: Record<string, unknown>): Promise<void> {
+    await api.put(`/admin/templates/${uuid}/theme`, { theme_config: themeConfig })
+  },
+
+  async updateTemplateSections(uuid: string, sections: AdminTemplateSection[]): Promise<void> {
+    await api.put(`/admin/templates/${uuid}/sections`, { sections })
+  },
+
+  async updateTemplateMusic(uuid: string, trackId: number | null): Promise<void> {
+    await api.put(`/admin/templates/${uuid}/music`, { track_id: trackId })
   },
 
   // ── Music ──────────────────────────────────────

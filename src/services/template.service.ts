@@ -9,10 +9,10 @@ export interface TemplateDemo {
   description: string | null
   thumbnail_url: string | null
   plan_required: 'free' | 'pro'
-  default_config: {
-    theme: ThemeConfig
-    sections: Section[]
-  }
+  category: 'wedding' | 'birthday' | 'baby_shower' | 'corporate' | 'house_warming'
+  theme_config: ThemeConfig
+  sections: Section[]
+  default_music_track: { id: number; name: string; url: string } | null
 }
 
 export async function getTemplates(opts?: { category?: string }): Promise<Template[]> {
