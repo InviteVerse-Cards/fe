@@ -17,9 +17,18 @@ const categories = [
   { value: 'birthday', label: '🎂 Sinh nhật' },
 ]
 
+const CATEGORY_TITLE: Record<string, string> = {
+  wedding: 'Thiệp cưới',
+  birthday: 'Thiệp sinh nhật',
+  baby_shower: 'Thiệp thôi nôi',
+  house_warming: 'Thiệp tân gia',
+  corporate: 'Thiệp sự kiện',
+}
+
 function handleSelectTemplate(template: Template) {
+  const label = CATEGORY_TITLE[template.category] ?? 'Thiệp'
   createInvitation(
-    { template_id: template.id, title: `Thiệp cưới - ${new Date().toLocaleDateString('vi-VN')}`, category: template.category },
+    { template_id: template.id, title: `${label} - ${new Date().toLocaleDateString('vi-VN')}`, category: template.category },
     {
       onSuccess: (invitation) => {
         router.push({ name: 'Editor', params: { uuid: invitation.uuid } })

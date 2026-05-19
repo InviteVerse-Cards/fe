@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { adminService } from '@/services/admin.service'
 import type { AdminTemplate } from '@/services/admin.service'
 import { useUIStore } from '@/stores/ui'
@@ -9,13 +10,13 @@ import AppModal from '@/components/common/AppModal.vue'
 import AppBadge from '@/components/common/AppBadge.vue'
 
 const ui = useUIStore()
+const router = useRouter()
 const templates = ref<AdminTemplate[]>([])
 const isLoading = ref(false)
 
 const formModal = ref(false)
 const editingTemplate = ref<AdminTemplate | null>(null)
 const isSaving = ref(false)
-const jsonError = ref('')
 
 const CATEGORIES = ['wedding', 'birthday', 'baby_shower', 'housewarming', 'corporate']
 
@@ -28,22 +29,12 @@ const formDefault = () => ({
   thumbnail_url: '',
   preview_url: '',
   is_active: true,
-  default_config: '{\n  "theme": {},\n  "sections": []\n}',
 })
 const form = reactive(formDefault())
 
 const deleteModal = ref(false)
 const deleteTarget = ref<AdminTemplate | null>(null)
 const isDeleting = ref(false)
-
-const isJsonValid = computed(() => {
-  try {
-    JSON.parse(form.default_config)
-    return true
-  } catch {
-    return false
-  }
-})
 
 async function loadTemplates() {
   isLoading.value = true
@@ -76,7 +67,6 @@ function onNameInput() {
 function openCreate() {
   editingTemplate.value = null
   Object.assign(form, formDefault())
-  jsonError.value = ''
   formModal.value = true
 }
 
@@ -91,16 +81,12 @@ function openEdit(t: AdminTemplate) {
     thumbnail_url: t.thumbnail_url || '',
     preview_url: t.preview_url || '',
     is_active: t.is_active,
-    default_config: (() => {
-      try {
-        const raw = t.default_config
-        if (typeof raw === 'string') return JSON.stringify(JSON.parse(raw), null, 2)
-        return JSON.stringify(raw, null, 2)
-      } catch { return '' }
-    })(),
   })
-  jsonError.value = ''
   formModal.value = true
+}
+
+function openVisualEditor(t: AdminTemplate) {
+  router.push(`/admin/templates/${t.uuid}/editor`)
 }
 
 async function doSave() {
@@ -108,12 +94,8 @@ async function doSave() {
     ui.toast.error('Tên template không được để trống')
     return
   }
-  if (!form.slug.trim()) {
+  if (!editingTemplate.value && !form.slug.trim()) {
     ui.toast.error('Slug không được để trống')
-    return
-  }
-  if (!isJsonValid.value) {
-    ui.toast.error('Default config phải là JSON hợp lệ')
     return
   }
 
@@ -127,7 +109,6 @@ async function doSave() {
         preview_url: form.preview_url || null,
         plan_required: form.plan_required,
         is_active: form.is_active,
-        default_config: form.default_config,
       }
       await adminService.updateTemplate(editingTemplate.value.uuid, dto)
       ui.toast.success('Đã cập nhật template')
@@ -140,10 +121,10 @@ async function doSave() {
         thumbnail_url: form.thumbnail_url || null,
         preview_url: form.preview_url || null,
         plan_required: form.plan_required,
-        default_config: form.default_config,
+        default_config: JSON.stringify({ theme: {}, sections: [] }),
       }
       await adminService.createTemplate(dto)
-      ui.toast.success('Đã tạo template mới')
+      ui.toast.success('Đã tạo template mới — dùng Visual Editor để thêm sections và theme')
     }
     formModal.value = false
     loadTemplates()
@@ -249,7 +230,8 @@ onMounted(loadTemplates)
             <!-- Actions -->
             <td class="px-4 py-3">
               <div class="flex items-center justify-end gap-2">
-                <AppButton variant="secondary" size="sm" @click="openEdit(t)">Sửa</AppButton>
+                <AppButton variant="primary" size="sm" @click="openVisualEditor(t)">✏️ Visual</AppButton>
+                <AppButton variant="secondary" size="sm" @click="openEdit(t)">Cài đặt</AppButton>
                 <AppButton variant="danger" size="sm" @click="openDelete(t)">Xóa</AppButton>
               </div>
             </td>
@@ -346,30 +328,15 @@ onMounted(loadTemplates)
           <span class="text-sm text-gray-700">Hiện template cho người dùng</span>
         </label>
 
-        <!-- JSON Config -->
-        <div>
-          <div class="mb-1.5 flex items-center justify-between">
-            <label class="text-sm font-medium text-gray-700">Default Config (JSON)</label>
-            <span
-              class="text-xs"
-              :class="isJsonValid ? 'text-green-600' : 'text-red-500'"
-            >
-              {{ isJsonValid ? '✓ JSON hợp lệ' : '✗ JSON không hợp lệ' }}
-            </span>
-          </div>
-          <textarea
-            v-model="form.default_config"
-            rows="10"
-            spellcheck="false"
-            class="w-full resize-y rounded-xl border bg-gray-950 px-4 py-3 font-mono text-xs text-green-400 placeholder:text-gray-600 focus:outline-none focus:ring-1"
-            :class="isJsonValid ? 'border-gray-700 focus:ring-indigo-500' : 'border-red-500 focus:ring-red-500'"
-          />
+        <!-- Visual editor hint (edit mode) -->
+        <div v-if="editingTemplate" class="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+          Dùng nút <strong>✏️ Visual</strong> trong danh sách để chỉnh sửa màu sắc, font, ảnh và sections.
         </div>
 
         <!-- Actions -->
         <div class="flex justify-end gap-3 pt-2">
           <AppButton variant="ghost" @click="formModal = false">Huỷ</AppButton>
-          <AppButton variant="primary" :loading="isSaving" :disabled="!isJsonValid" @click="doSave">
+          <AppButton variant="primary" :loading="isSaving" @click="doSave">
             {{ editingTemplate ? 'Lưu thay đổi' : 'Tạo template' }}
           </AppButton>
         </div>

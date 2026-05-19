@@ -48,7 +48,14 @@ const c = computed(() => ({
 
 const heroUrl    = computed(() => props.template.hero_config?.background_url ?? props.template.thumbnail_url)
 const overlayAlpha = computed(() => ((props.template.hero_config?.background_overlay ?? 40) / 100).toFixed(2))
-const tagline    = computed(() => props.template.hero_config?.tagline ?? 'Trọn đời bên nhau')
+const tagline    = computed(() => {
+  const t = props.template.hero_config?.tagline
+  if (t) return t
+  if (props.template.category === 'birthday') return 'Happy Birthday!'
+  if (props.template.category === 'baby_shower') return 'Chào Bé Yêu'
+  if (props.template.category === 'house_warming') return 'Tân Gia Hỷ'
+  return 'Trọn đời bên nhau'
+})
 const isPopular  = computed(() => props.template.use_count >= 10)
 
 const groomName = computed(() => props.template.hero_config?.groom_name || 'Chú Rể')
@@ -560,9 +567,14 @@ const previewRomanDate = computed(() => {
               <p class="mb-1 text-[7px] font-light tracking-[0.35em] uppercase" :style="{ color: c.text, opacity: 0.45 }">
                 {{ tagline }}
               </p>
-              <h2 class="text-xl font-bold leading-snug" :style="{ color: c.primary }">{{ brideName }}</h2>
-              <p class="my-0.5 text-sm font-light" :style="{ color: c.text, opacity: 0.4 }">&amp;</p>
-              <h2 class="text-xl font-bold leading-snug" :style="{ color: c.primary }">{{ groomName }}</h2>
+              <template v-if="template.category === 'birthday' || template.category === 'baby_shower' || template.category === 'house_warming'">
+                <h2 class="text-xl font-bold leading-snug" :style="{ color: c.primary }">{{ celebrantName }}</h2>
+              </template>
+              <template v-else>
+                <h2 class="text-xl font-bold leading-snug" :style="{ color: c.primary }">{{ brideName }}</h2>
+                <p class="my-0.5 text-sm font-light" :style="{ color: c.text, opacity: 0.4 }">&amp;</p>
+                <h2 class="text-xl font-bold leading-snug" :style="{ color: c.primary }">{{ groomName }}</h2>
+              </template>
 
               <!-- Thin divider -->
               <div class="mt-2 flex w-3/4 items-center gap-1.5">
@@ -579,21 +591,30 @@ const previewRomanDate = computed(() => {
             <div class="flex-shrink-0 flex items-center gap-1 px-3 pt-2 pb-1 justify-center" :style="{ borderTop: `2px solid ${c.primary}25` }">
               <div class="h-px flex-1" :style="{ background: `${c.primary}25` }" />
               <span class="text-[9px]" :style="{ color: c.secondary }">❀</span>
-              <p class="text-[8px] font-bold tracking-[0.18em] uppercase" :style="{ color: c.primary }">Thông Tin Lễ Cưới</p>
+              <p class="text-[8px] font-bold tracking-[0.18em] uppercase" :style="{ color: c.primary }">{{ template.category === 'birthday' ? 'Thông Tin Sinh Nhật' : template.category === 'baby_shower' ? 'Thông Tin Thôi Nôi' : template.category === 'house_warming' ? 'Thông Tin Tân Gia' : 'Thông Tin Lễ Cưới' }}</p>
               <span class="text-[9px]" :style="{ color: c.secondary }">❀</span>
               <div class="h-px flex-1" :style="{ background: `${c.primary}25` }" />
             </div>
 
             <div class="flex flex-1 flex-col items-center justify-center gap-1.5 px-3 py-1">
-              <div class="w-full rounded-lg px-3 py-1.5" :style="{ background: `${c.primary}10`, border: `1px solid ${c.primary}20` }">
-                <p class="text-[8px] font-bold" :style="{ color: c.primary }">🌸 Lễ Vu Quy</p>
-                <p class="text-[7px] mt-0.5" :style="{ color: c.text, opacity: 0.65 }">08:00 · 12/12/2025 · TP.HCM</p>
-              </div>
-              <div class="w-full rounded-lg px-3 py-1.5" :style="{ background: `${c.primary}10`, border: `1px solid ${c.primary}20` }">
-                <p class="text-[8px] font-bold" :style="{ color: c.primary }">💐 Lễ Thành Hôn</p>
-                <p class="text-[7px] mt-0.5" :style="{ color: c.text, opacity: 0.65 }">18:00 · 12/12/2025 · Tiệc Cưới</p>
-              </div>
-              <p class="text-[7px] italic" :style="{ color: c.text, opacity: 0.38 }">Trân trọng kính mời ✦</p>
+              <template v-if="template.category === 'birthday' || template.category === 'baby_shower' || template.category === 'house_warming'">
+                <div class="w-full rounded-lg px-3 py-1.5" :style="{ background: `${c.primary}10`, border: `1px solid ${c.primary}20` }">
+                  <p class="text-[8px] font-bold" :style="{ color: c.primary }">🎉 {{ template.category === 'birthday' ? 'Tiệc Sinh Nhật' : template.category === 'baby_shower' ? 'Tiệc Thôi Nôi' : 'Tiệc Tân Gia' }}</p>
+                  <p class="text-[7px] mt-0.5" :style="{ color: c.text, opacity: 0.65 }">{{ previewDate }} · TP.HCM</p>
+                </div>
+                <p class="text-[7px] italic" :style="{ color: c.text, opacity: 0.38 }">Trân trọng kính mời ✦</p>
+              </template>
+              <template v-else>
+                <div class="w-full rounded-lg px-3 py-1.5" :style="{ background: `${c.primary}10`, border: `1px solid ${c.primary}20` }">
+                  <p class="text-[8px] font-bold" :style="{ color: c.primary }">🌸 Lễ Vu Quy</p>
+                  <p class="text-[7px] mt-0.5" :style="{ color: c.text, opacity: 0.65 }">08:00 · 12/12/2025 · TP.HCM</p>
+                </div>
+                <div class="w-full rounded-lg px-3 py-1.5" :style="{ background: `${c.primary}10`, border: `1px solid ${c.primary}20` }">
+                  <p class="text-[8px] font-bold" :style="{ color: c.primary }">💐 Lễ Thành Hôn</p>
+                  <p class="text-[7px] mt-0.5" :style="{ color: c.text, opacity: 0.65 }">18:00 · 12/12/2025 · Tiệc Cưới</p>
+                </div>
+                <p class="text-[7px] italic" :style="{ color: c.text, opacity: 0.38 }">Trân trọng kính mời ✦</p>
+              </template>
             </div>
 
             <div class="h-2 flex-shrink-0" :style="{ background: `linear-gradient(90deg,${c.secondary},${c.primary},${c.accent})` }" />

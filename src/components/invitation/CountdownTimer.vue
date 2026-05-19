@@ -50,7 +50,7 @@ const LABELS: Record<keyof Remaining, string> = { days: 'Ngày', hours: 'Giờ',
         {{ String(val).padStart(2, '0') }}
       </span>
       <span
-        class="mt-1 text-xs font-semibold uppercase tracking-widest opacity-70 sm:text-xs"
+        class="mt-1 text-xs font-semibold tracking-widest opacity-70"
         :style="theme ? { color: theme.text_color } : { color: 'white' }"
       >
         {{ LABELS[unit] }}

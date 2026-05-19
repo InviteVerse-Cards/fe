@@ -3,8 +3,15 @@ import { computed } from 'vue'
 import type { EventInfoConfig, ThemeConfig } from '@/types/section.types'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 
-const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean }>()
+const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean; category?: string }>()
 const cfg = computed(() => props.config as EventInfoConfig)
+
+const sectionHeading = computed(() => {
+  if (props.category === 'birthday') return 'Thông tin tiệc sinh nhật'
+  if (props.category === 'baby_shower') return 'Thông tin tiệc thôi nôi'
+  if (props.category === 'house_warming') return 'Thông tin tân gia'
+  return 'Thông tin hôn lễ'
+})
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
@@ -40,7 +47,7 @@ function formatDate(dateStr: string) {
           class="text-3xl font-semibold"
           :style="{ fontFamily: `'${theme.font_heading}', serif`, color: theme.primary_color }"
         >
-          Thông tin hôn lễ
+          {{ sectionHeading }}
         </h2>
         <FloralDecoration variant="divider" :color="theme.primary_color" :opacity="0.45" :size="240" />
       </div>
@@ -64,7 +71,7 @@ function formatDate(dateStr: string) {
       </div>
 
       <!-- Ceremony cards -->
-      <div class="grid gap-6 sm:grid-cols-2">
+      <div :class="['grid gap-6', (!props.category || props.category === 'wedding') && cfg.ceremonies?.length > 1 ? 'sm:grid-cols-2' : 'grid-cols-1 max-w-md mx-auto w-full']">
         <div
           v-for="(ceremony, i) in cfg.ceremonies"
           :key="ceremony.name"

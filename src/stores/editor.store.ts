@@ -4,6 +4,7 @@ import type { Invitation } from '@/types/invitation.types'
 import type { Section, ThemeConfig } from '@/types/section.types'
 import { DEFAULT_THEME, DEFAULT_SECTIONS } from '@/types/section.types'
 import * as invitationService from '@/services/invitation.service'
+import { adminService } from '@/services/admin.service'
 
 export const useEditorStore = defineStore('editor', () => {
   const invitation = ref<Invitation | null>(null)
@@ -14,6 +15,11 @@ export const useEditorStore = defineStore('editor', () => {
   const activeSection = ref<string | null>(null)
   const previewMode = ref<'mobile' | 'desktop'>('mobile')
   const editorMode = ref<'edit' | 'preview'>('edit')
+
+  // Template mode state — null means invitation mode
+  const templateUuid = ref<string | null>(null)
+  const templateCategory = ref<string | null>(null)
+  const templateName = ref<string | null>(null)
 
   const enabledSections = computed(() =>
     [...sections.value]
@@ -78,10 +84,38 @@ export const useEditorStore = defineStore('editor', () => {
     isDirty.value = true
   }
 
+  async function loadTemplate(uuid: string, prefetched?: import('@/services/admin.service').AdminTemplateFull) {
+    const data = prefetched ?? await adminService.getTemplateFull(uuid)
+    templateUuid.value = uuid
+    templateCategory.value = data.category
+    templateName.value = data.name
+    sections.value = (data.sections as Section[]).sort((a, b) => a.sort_order - b.sort_order)
+    themeConfig.value = { ...DEFAULT_THEME, ...(data.theme_config as Partial<ThemeConfig>) }
+    isDirty.value = false
+
+    if (sections.value.length > 0) {
+      activeSection.value = sections.value.find(s => s.is_enabled)?.section_type ?? null
+    }
+  }
+
   async function save() {
-    if (!invitation.value || !isDirty.value) return
+    if (!isDirty.value) return
     isSaving.value = true
     try {
+      if (templateUuid.value) {
+        // Template mode — save to admin API
+        await adminService.updateTemplateTheme(templateUuid.value, themeConfig.value)
+        await adminService.updateTemplateSections(templateUuid.value, sections.value.map(s => ({
+          section_type: s.section_type,
+          sort_order: s.sort_order,
+          is_enabled: s.is_enabled,
+          config: s.config as Record<string, unknown>,
+        })))
+        isDirty.value = false
+        return
+      }
+
+      if (!invitation.value) return
       await invitationService.update(invitation.value.uuid, {
         theme_config: themeConfig.value,
         sections: sections.value.map(s => ({
@@ -105,13 +139,17 @@ export const useEditorStore = defineStore('editor', () => {
     isSaving.value = false
     activeSection.value = null
     editorMode.value = 'edit'
+    templateUuid.value = null
+    templateCategory.value = null
+    templateName.value = null
   }
 
   return {
     invitation, sections, themeConfig, isDirty, isSaving,
     activeSection, previewMode, editorMode,
+    templateUuid, templateCategory, templateName,
     enabledSections,
-    loadInvitation, updateSectionConfig, toggleSection, reorderSections,
+    loadInvitation, loadTemplate, updateSectionConfig, toggleSection, reorderSections,
     updateTheme, save, reset,
   }
 })

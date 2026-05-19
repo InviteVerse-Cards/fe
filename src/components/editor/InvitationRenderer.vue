@@ -77,6 +77,10 @@ const layoutType = computed<string>(() => {
   )
 })
 
+const invitationCategory = computed(() =>
+  editorStore.invitation?.category ?? editorStore.templateCategory ?? undefined
+)
+
 useScrollReveal()
 
 onMounted(() => {
@@ -97,6 +101,7 @@ watch(() => props.theme, (newTheme) => {
       :config="section.config"
       :theme="theme"
       :is-preview="true"
+      :category="invitationCategory"
     />
 
     <div v-if="sections.length === 0" class="flex h-48 items-center justify-center text-sm text-gray-400">

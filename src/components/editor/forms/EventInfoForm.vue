@@ -4,11 +4,39 @@ import { useEditorStore } from '@/stores/editor.store'
 import type { EventInfoConfig, Ceremony } from '@/types/section.types'
 import AppInput from '@/components/common/AppInput.vue'
 
-const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
+const props = defineProps<{ config: Record<string, unknown>; sectionType: string; category?: string }>()
 const editorStore = useEditorStore()
 const form = ref<EventInfoConfig>({ ceremonies: [], ...(props.config as EventInfoConfig) })
 
 watch(() => props.config, (v) => { form.value = { ceremonies: [], ...(v as EventInfoConfig) } }, { deep: true })
+
+const ceremonyLabel = {
+  section: {
+    birthday: 'Các buổi tiệc',
+    baby_shower: 'Các buổi tiệc',
+    house_warming: 'Các buổi tiệc',
+    housewarming: 'Các buổi tiệc',
+    corporate: 'Các buổi / sự kiện',
+  } as Record<string, string>,
+  add: {
+    birthday: '+ Thêm buổi tiệc',
+    baby_shower: '+ Thêm buổi tiệc',
+    house_warming: '+ Thêm buổi tiệc',
+    housewarming: '+ Thêm buổi tiệc',
+    corporate: '+ Thêm sự kiện',
+  } as Record<string, string>,
+  default: {
+    birthday: 'Tiệc sinh nhật',
+    baby_shower: 'Tiệc thôi nôi',
+    house_warming: 'Tân gia',
+    housewarming: 'Tân gia',
+    corporate: 'Sự kiện',
+  } as Record<string, string>,
+}
+
+function sectionTitle() { return ceremonyLabel.section[props.category ?? ''] ?? 'Các buổi lễ' }
+function addLabel()     { return ceremonyLabel.add[props.category ?? ''] ?? '+ Thêm buổi lễ' }
+function defaultName()  { return ceremonyLabel.default[props.category ?? ''] ?? 'Lễ cưới' }
 
 function sync() {
   editorStore.updateSectionConfig('event_info', {
@@ -18,7 +46,7 @@ function sync() {
 }
 
 function addCeremony() {
-  form.value.ceremonies.push({ name: 'Lễ cưới', date: '', time: '', venue: '', address: '' })
+  form.value.ceremonies.push({ name: defaultName(), date: '', time: '', venue: '', address: '' })
   sync()
 }
 
@@ -49,11 +77,11 @@ function updateCeremony(i: number, field: keyof Ceremony, value: string) {
 
     <div>
       <div class="mb-2 flex items-center justify-between">
-        <label class="text-sm font-medium text-gray-700">Các buổi lễ</label>
+        <label class="text-sm font-medium text-gray-700">{{ sectionTitle() }}</label>
         <button
           class="text-xs text-indigo-600 hover:underline"
           @click="addCeremony"
-        >+ Thêm buổi lễ</button>
+        >{{ addLabel() }}</button>
       </div>
 
       <div v-for="(c, i) in form.ceremonies" :key="i" class="mb-3 rounded-lg border border-gray-200 p-3">

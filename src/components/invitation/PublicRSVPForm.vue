@@ -8,10 +8,17 @@ const props = defineProps<{
   config: Record<string, unknown>
   theme: ThemeConfig
   slug: string
+  category?: string
 }>()
 
 const cfg = computed(() => props.config as RSVPConfig)
 const slugRef = computed(() => props.slug)
+const notePlaceholder = computed(() => {
+  if (props.category === 'birthday') return 'Lời chúc mừng sinh nhật...'
+  if (props.category === 'baby_shower') return 'Lời chúc cho bé...'
+  if (props.category === 'house_warming') return 'Lời chúc tân gia...'
+  return 'Lời chúc đến cô dâu chú rể...'
+})
 const form = ref({ name: '', phone: '', status: 'attending' as 'attending' | 'not_attending', note: '' })
 const submitted = ref(false)
 
@@ -96,7 +103,7 @@ function handleSubmit() {
             v-model="form.note"
             rows="2"
             class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none"
-            placeholder="Lời chúc đến cô dâu chú rể..."
+            :placeholder="notePlaceholder"
           />
         </div>
 

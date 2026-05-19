@@ -9,25 +9,40 @@ const editorStore = useEditorStore()
 const form = ref<MapConfig>({ ...(props.config as MapConfig) })
 
 watch(() => props.config, (v) => { form.value = { ...(v as MapConfig) } }, { deep: true })
+function extractEmbedUrl(raw: string): string {
+  const match = raw.match(/src="([^"]+)"/i)
+  return match ? match[1] : raw.trim()
+}
+
 function update(field: keyof MapConfig, value: string) {
-  (form.value as any)[field] = value
-  editorStore.updateSectionConfig('map', { [field]: value })
+  const resolved = field === 'embed_url' ? extractEmbedUrl(value) : value;
+  (form.value as any)[field] = resolved
+  editorStore.updateSectionConfig('map', { [field]: resolved })
 }
 </script>
 
 <template>
   <div class="space-y-4">
     <AppInput label="Tên địa điểm" :model-value="form.venue_name ?? ''" placeholder="Nhà hàng Tiệc Cưới" @update:model-value="update('venue_name', $event)" />
-    <AppInput label="Địa chỉ" :model-value="form.address ?? ''" placeholder="123 đường ABC, Q.1, TP.HCM" @update:model-value="update('address', $event)" />
     <div class="space-y-1">
       <label class="block text-sm font-medium text-gray-700">Google Maps Embed URL</label>
       <textarea
         :value="form.embed_url ?? ''"
         rows="3"
         class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-        placeholder="https://maps.google.com/maps?..."
+        placeholder="Dán thẻ <iframe> hoặc link embed từ Google Maps vào đây"
         @input="update('embed_url', ($event.target as HTMLTextAreaElement).value)"
       />
+      <!-- How-to guide -->
+      <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700 space-y-1.5">
+        <p class="font-semibold">Cách lấy mã nhúng bản đồ:</p>
+        <ol class="list-decimal list-inside space-y-1 leading-relaxed">
+          <li>Mở <span class="font-medium">Google Maps</span> và tìm địa điểm</li>
+          <li>Nhấn nút <span class="font-medium">Chia sẻ</span> → chọn tab <span class="font-medium">"Nhúng bản đồ"</span></li>
+          <li>Nhấn <span class="font-medium">"Sao chép HTML"</span></li>
+          <li>Dán toàn bộ vào đây — hệ thống tự xử lý</li>
+        </ol>
+      </div>
     </div>
   </div>
 </template>
