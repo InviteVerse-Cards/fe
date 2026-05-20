@@ -5,7 +5,10 @@ import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { useMyInvitations, useDeleteInvitation } from '@/composables/useInvitation'
 import InvitationCard from '@/components/invitation/InvitationCard.vue'
+import GuestListModal from '@/components/invitation/GuestListModal.vue'
+import ShareModal from '@/components/invitation/ShareModal.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
+import type { Invitation } from '@/types/invitation.types'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -14,6 +17,12 @@ const { user } = storeToRefs(auth)
 const page = ref(1)
 const { data, isPending, isError } = useMyInvitations(page)
 const { mutate: deleteInvitation, isPending: isDeleting } = useDeleteInvitation()
+
+const guestModalOpen = ref(false)
+const selectedInvitation = ref<{ uuid: string; title: string } | null>(null)
+
+const shareModalOpen = ref(false)
+const selectedShare = ref<{ publicUrl: string; qrCodeUrl: string; title: string } | null>(null)
 
 function goToTemplates() {
   router.push({ name: 'Templates' })
@@ -27,6 +36,23 @@ function handleDelete(uuid: string) {
   if (confirm('Bạn có chắc muốn xóa thiệp này? Hành động không thể hoàn tác.')) {
     deleteInvitation(uuid)
   }
+}
+
+function openGuestList(uuid: string) {
+  const inv = data.value?.items.find((i: Invitation) => i.uuid === uuid)
+  selectedInvitation.value = { uuid, title: inv?.title ?? '' }
+  guestModalOpen.value = true
+}
+
+function openShare(uuid: string) {
+  const inv = data.value?.items.find((i: Invitation) => i.uuid === uuid)
+  if (!inv) return
+  selectedShare.value = {
+    publicUrl: `${import.meta.env.VITE_PUBLIC_BASE_URL}/i/${inv.slug}`,
+    qrCodeUrl: inv.qr_code_url ?? '',
+    title: inv.title,
+  }
+  shareModalOpen.value = true
 }
 </script>
 
@@ -83,6 +109,8 @@ function handleDelete(uuid: string) {
           :invitation="inv"
           @edit="goToEditor"
           @delete="handleDelete"
+          @guests="openGuestList"
+          @share="openShare"
         />
       </div>
 
@@ -103,4 +131,22 @@ function handleDelete(uuid: string) {
       </div>
     </div>
   </div>
+
+  <!-- Guest List Modal -->
+  <GuestListModal
+    v-if="selectedInvitation"
+    v-model="guestModalOpen"
+    :uuid="selectedInvitation.uuid"
+    :title="selectedInvitation.title"
+  />
+
+  <!-- Share Modal -->
+  <ShareModal
+    v-if="selectedShare"
+    :show="shareModalOpen"
+    :public-url="selectedShare.publicUrl"
+    :qr-code-url="selectedShare.qrCodeUrl"
+    :title="selectedShare.title"
+    @close="shareModalOpen = false"
+  />
 </template>

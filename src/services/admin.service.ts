@@ -61,6 +61,16 @@ export interface CreditOrder {
   created_at: string
 }
 
+export interface AdminCategory {
+  id: number
+  slug: string
+  name: string
+  sort_order: number
+  is_active: boolean
+  total_templates: number
+  active_templates: number
+}
+
 export interface AdminTemplate {
   id: number
   uuid: string
@@ -72,6 +82,7 @@ export interface AdminTemplate {
   plan_required: 'free' | 'pro'
   category: string
   use_count: number
+  sort_order: number
   is_active: boolean
   default_config: string
   created_at?: string
@@ -235,6 +246,25 @@ export const adminService = {
 
   async updateTemplateMusic(uuid: string, trackId: number | null): Promise<void> {
     await api.put(`/admin/templates/${uuid}/music`, { track_id: trackId })
+  },
+
+  async reorderTemplates(items: { uuid: string; sort_order: number }[]): Promise<void> {
+    await api.put('/admin/templates/reorder', items)
+  },
+
+  // ── Categories ─────────────────────────────────
+  async getCategories(): Promise<AdminCategory[]> {
+    const { data } = await api.get('/admin/categories')
+    return data.data
+  },
+
+  async toggleCategory(slug: string): Promise<{ is_active: boolean }> {
+    const { data } = await api.put(`/admin/categories/${slug}/toggle`)
+    return data.data
+  },
+
+  async reorderCategories(items: { slug: string; sort_order: number }[]): Promise<void> {
+    await api.put('/admin/categories/reorder', items)
   },
 
   // ── Music ──────────────────────────────────────

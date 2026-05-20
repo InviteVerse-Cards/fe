@@ -3,8 +3,9 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useEditorStore } from '@/stores/editor.store'
 import { SECTION_LABELS, SECTION_ICONS } from '@/types/section.types'
-import type { SectionType } from '@/types/section.types'
+import type { SectionType, SectionStyle } from '@/types/section.types'
 import AccordionPanel from './AccordionPanel.vue'
+import SectionStyleEditor from './SectionStyleEditor.vue'
 
 // Form components
 import HeroForm from './forms/HeroForm.vue'
@@ -73,6 +74,13 @@ const visibleSections = computed(() => {
       <div v-else class="py-4 text-center text-sm text-gray-400">
         Chưa có form cho section này
       </div>
+
+      <div class="my-4 border-t border-gray-100" />
+
+      <SectionStyleEditor
+        :section-type="section.section_type"
+        :style="(section.config.style as SectionStyle) ?? {}"
+      />
     </AccordionPanel>
   </div>
 </template>

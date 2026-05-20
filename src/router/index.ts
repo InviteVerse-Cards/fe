@@ -75,9 +75,10 @@ const router = createRouter({
         { path: 'credit-orders',  name: 'AdminOrders',    component: () => import('@/pages/admin/CreditOrdersPage.vue') },
         { path: 'credit-packages', name: 'AdminPackages', component: () => import('@/pages/admin/CreditPackagesPage.vue') },
         { path: 'ai-models',      name: 'AdminAIModels',  component: () => import('@/pages/admin/AIModelsPage.vue') },
-        { path: 'templates',               name: 'AdminTemplates',       component: () => import('@/pages/admin/TemplatesAdminPage.vue') },
-        { path: 'templates/:uuid/editor', name: 'AdminTemplateEditor',  component: () => import('@/pages/admin/TemplateEditorPage.vue') },
-        { path: 'music',                   name: 'AdminMusic',           component: () => import('@/pages/admin/MusicAdminPage.vue') },
+        { path: 'templates',               name: 'AdminTemplates',         component: () => import('@/pages/admin/TemplatesAdminPage.vue') },
+        { path: 'templates/:uuid/editor', name: 'AdminTemplateEditor',   component: () => import('@/pages/admin/TemplateEditorPage.vue') },
+        { path: 'categories',             name: 'AdminCategories',        component: () => import('@/pages/admin/CategoryTemplatesPage.vue') },
+        { path: 'music',                   name: 'AdminMusic',            component: () => import('@/pages/admin/MusicAdminPage.vue') },
       ],
     },
 

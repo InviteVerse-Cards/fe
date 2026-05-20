@@ -1,32 +1,46 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuery } from '@tanstack/vue-query'
 import { useTemplates } from '@/composables/useTemplate'
 import { useCreateInvitation } from '@/composables/useInvitation'
 import TemplateCard from '@/components/template/TemplateCard.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
+import { CATEGORY_LABELS } from '@/constants/categorySections'
+import { getActiveCategories } from '@/services/template.service'
 import type { Template } from '@/types/template.types'
 
+const CATEGORY_ICONS: Record<string, string> = {
+  wedding:     '💍',
+  birthday:    '🎂',
+  baby_shower: '🍼',
+  housewarming:'🏠',
+  house_warming:'🏠',
+  corporate:   '🏢',
+}
+
 const router = useRouter()
-const selectedCategory = ref<string | undefined>('wedding')
+
+// Fetch active categories từ API (admin điều khiển)
+const { data: apiCategories } = useQuery({
+  queryKey: ['template-categories'],
+  queryFn: getActiveCategories,
+  staleTime: 60_000,
+})
+
+const selectedCategory = ref<string>('wedding')
 const { data: templates, isPending } = useTemplates(selectedCategory)
 const { mutate: createInvitation, isPending: isCreating } = useCreateInvitation()
 
-const categories = [
-  { value: 'wedding', label: '💍 Thiệp cưới' },
-  { value: 'birthday', label: '🎂 Sinh nhật' },
-]
-
-const CATEGORY_TITLE: Record<string, string> = {
-  wedding: 'Thiệp cưới',
-  birthday: 'Thiệp sinh nhật',
-  baby_shower: 'Thiệp thôi nôi',
-  house_warming: 'Thiệp tân gia',
-  corporate: 'Thiệp sự kiện',
-}
+// Khi categories load xong, chọn cái đầu tiên
+watch(apiCategories, (cats) => {
+  if (cats && cats.length > 0 && !cats.find(c => c.slug === selectedCategory.value)) {
+    selectedCategory.value = cats[0].slug
+  }
+}, { immediate: true })
 
 function handleSelectTemplate(template: Template) {
-  const label = CATEGORY_TITLE[template.category] ?? 'Thiệp'
+  const label = CATEGORY_LABELS[template.category] ?? 'Thiệp'
   createInvitation(
     { template_id: template.id, title: `${label} - ${new Date().toLocaleDateString('vi-VN')}`, category: template.category },
     {
@@ -43,7 +57,7 @@ function handlePreviewTemplate(template: Template) {
 
 function handleBlankInvitation() {
   createInvitation(
-    { title: `Thiệp cưới - ${new Date().toLocaleDateString('vi-VN')}`, category: 'wedding' },
+    { title: `Thiệp - ${new Date().toLocaleDateString('vi-VN')}`, category: selectedCategory.value || 'wedding' },
     {
       onSuccess: (invitation) => {
         router.push({ name: 'Editor', params: { uuid: invitation.uuid } })
@@ -63,18 +77,18 @@ function handleBlankInvitation() {
         <p class="mt-3 text-base text-gray-500">Bắt đầu từ mẫu có sẵn hoặc tự thiết kế từ đầu</p>
       </div>
 
-      <!-- Category filter -->
-      <div class="mb-8 flex justify-center gap-3">
+      <!-- Category filter — từ API, chỉ hiển thị categories admin bật -->
+      <div class="mb-8 flex flex-wrap justify-center gap-3">
         <button
-          v-for="cat in categories"
-          :key="cat.value"
+          v-for="cat in (apiCategories ?? [])"
+          :key="cat.slug"
           class="rounded-full px-6 py-2.5 text-sm font-semibold transition-all"
-          :class="selectedCategory === cat.value
+          :class="selectedCategory === cat.slug
             ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
             : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600'"
-          @click="selectedCategory = cat.value"
+          @click="selectedCategory = cat.slug"
         >
-          {{ cat.label }}
+          {{ CATEGORY_ICONS[cat.slug] ?? '' }} {{ cat.name }}
         </button>
       </div>
 
@@ -84,9 +98,9 @@ function handleBlankInvitation() {
       </div>
 
       <template v-else>
-        <!-- Templates grid — blank card first as special item -->
+        <!-- Templates grid -->
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <!-- Blank / Start from scratch card -->
+          <!-- Blank card -->
           <div class="flex flex-col">
             <button
               class="group relative aspect-[3/5] cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 bg-white transition-all duration-300 hover:border-indigo-400 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"

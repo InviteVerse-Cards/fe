@@ -20,6 +20,11 @@ export async function getTemplates(opts?: { category?: string }): Promise<Templa
   return data.data
 }
 
+export async function getActiveCategories(): Promise<{ slug: string; name: string }[]> {
+  const { data } = await api.get('/templates/categories')
+  return data.data
+}
+
 export async function getTemplateDemo(slug: string): Promise<TemplateDemo> {
   const { data } = await api.get(`/public/templates/${slug}`)
   return data.data

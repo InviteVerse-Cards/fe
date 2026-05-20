@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { adminService } from '@/services/admin.service'
 import type { AdminTemplate } from '@/services/admin.service'
@@ -8,6 +8,9 @@ import AppSpinner from '@/components/common/AppSpinner.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import AppModal from '@/components/common/AppModal.vue'
 import AppBadge from '@/components/common/AppBadge.vue'
+import ImageUploader from '@/components/editor/ImageUploader.vue'
+import { getAllowedSections, CATEGORY_LABELS, CATEGORY_OPTIONS } from '@/constants/categorySections'
+import { DEFAULT_SECTIONS } from '@/types/section.types'
 
 const ui = useUIStore()
 const router = useRouter()
@@ -18,7 +21,7 @@ const formModal = ref(false)
 const editingTemplate = ref<AdminTemplate | null>(null)
 const isSaving = ref(false)
 
-const CATEGORIES = ['wedding', 'birthday', 'baby_shower', 'housewarming', 'corporate']
+const CATEGORIES = CATEGORY_OPTIONS
 
 const formDefault = () => ({
   name: '',
@@ -113,6 +116,11 @@ async function doSave() {
       await adminService.updateTemplate(editingTemplate.value.uuid, dto)
       ui.toast.success('Đã cập nhật template')
     } else {
+      const allowed = getAllowedSections(form.category)
+      const defaultSections = DEFAULT_SECTIONS
+        .filter(s => (allowed as string[]).includes(s.section_type))
+        .map((s, i) => ({ ...s, sort_order: i }))
+
       const dto: Record<string, unknown> = {
         name: form.name,
         slug: form.slug,
@@ -121,7 +129,7 @@ async function doSave() {
         thumbnail_url: form.thumbnail_url || null,
         preview_url: form.preview_url || null,
         plan_required: form.plan_required,
-        default_config: JSON.stringify({ theme: {}, sections: [] }),
+        default_config: JSON.stringify({ theme: {}, sections: defaultSections }),
       }
       await adminService.createTemplate(dto)
       ui.toast.success('Đã tạo template mới — dùng Visual Editor để thêm sections và theme')
@@ -157,6 +165,34 @@ async function doDelete() {
 }
 
 onMounted(loadTemplates)
+
+// ── Search / Filter / Pagination ──────────────────────────────────────
+const search        = ref('')
+const filterCategory = ref('')
+const filterStatus  = ref('')   // '' | 'active' | 'hidden'
+const filterPlan    = ref('')   // '' | 'free' | 'pro'
+const currentPage   = ref(1)
+const PAGE_SIZE     = 10
+
+const filtered = computed(() => {
+  let list = templates.value
+  const q = search.value.trim().toLowerCase()
+  if (q) list = list.filter(t => t.name.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q))
+  if (filterCategory.value) list = list.filter(t => t.category === filterCategory.value)
+  if (filterStatus.value === 'active') list = list.filter(t => t.is_active)
+  else if (filterStatus.value === 'hidden') list = list.filter(t => !t.is_active)
+  if (filterPlan.value) list = list.filter(t => t.plan_required === filterPlan.value)
+  return list
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
+
+const paginated = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return filtered.value.slice(start, start + PAGE_SIZE)
+})
+
+watch([search, filterCategory, filterStatus, filterPlan], () => { currentPage.value = 1 })
 </script>
 
 <template>
@@ -168,6 +204,56 @@ onMounted(loadTemplates)
         <p class="mt-1 text-sm text-gray-500">Quản lý thiệp mẫu cho người dùng</p>
       </div>
       <AppButton variant="primary" @click="openCreate">+ Thêm template</AppButton>
+    </div>
+
+    <!-- Search & Filter bar -->
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <!-- Search -->
+      <div class="relative flex-1 min-w-[200px]">
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+        </svg>
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Tìm tên hoặc slug..."
+          class="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+        />
+      </div>
+
+      <!-- Filter: Category -->
+      <select
+        v-model="filterCategory"
+        class="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+      >
+        <option value="">Tất cả danh mục</option>
+        <option v-for="cat in CATEGORIES" :key="cat.value" :value="cat.value">{{ cat.label }}</option>
+      </select>
+
+      <!-- Filter: Status -->
+      <select
+        v-model="filterStatus"
+        class="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+      >
+        <option value="">Tất cả trạng thái</option>
+        <option value="active">Đang hiện</option>
+        <option value="hidden">Đang ẩn</option>
+      </select>
+
+      <!-- Filter: Plan -->
+      <select
+        v-model="filterPlan"
+        class="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+      >
+        <option value="">Tất cả gói</option>
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+      </select>
+
+      <!-- Result count -->
+      <span class="text-sm text-gray-400 whitespace-nowrap">
+        {{ filtered.length }} template
+      </span>
     </div>
 
     <!-- Loading -->
@@ -189,7 +275,7 @@ onMounted(loadTemplates)
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr v-for="t in templates" :key="t.uuid" class="hover:bg-gray-50 transition-colors">
+          <tr v-for="t in paginated" :key="t.uuid" class="hover:bg-gray-50 transition-colors">
             <!-- Name + slug -->
             <td class="px-4 py-3">
               <div class="flex items-center gap-3">
@@ -212,7 +298,7 @@ onMounted(loadTemplates)
               </div>
             </td>
             <!-- Category -->
-            <td class="px-4 py-3 text-gray-600 capitalize">{{ t.category }}</td>
+            <td class="px-4 py-3 text-gray-600">{{ CATEGORY_LABELS[t.category] ?? t.category }}</td>
             <!-- Plan -->
             <td class="px-4 py-3">
               <AppBadge :variant="t.plan_required === 'pro' ? 'primary' : 'default'" size="sm">
@@ -236,11 +322,47 @@ onMounted(loadTemplates)
               </div>
             </td>
           </tr>
-          <tr v-if="templates.length === 0">
-            <td colspan="6" class="px-4 py-16 text-center text-gray-500">Chưa có template nào</td>
+          <tr v-if="paginated.length === 0">
+            <td colspan="6" class="px-4 py-16 text-center text-gray-500">
+              {{ templates.length === 0 ? 'Chưa có template nào' : 'Không tìm thấy kết quả phù hợp' }}
+            </td>
           </tr>
         </tbody>
       </table>
+
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+        <span class="text-xs text-gray-400">
+          Trang {{ currentPage }}/{{ totalPages }} · {{ filtered.length }} kết quả
+        </span>
+        <div class="flex items-center gap-1">
+          <button
+            class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40"
+            :class="currentPage > 1 ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-300'"
+            :disabled="currentPage <= 1"
+            @click="currentPage--"
+          >
+            ← Trước
+          </button>
+          <button
+            v-for="p in totalPages"
+            :key="p"
+            class="min-w-[32px] rounded-lg px-2 py-1.5 text-sm font-medium transition-colors"
+            :class="p === currentPage ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'"
+            @click="currentPage = p"
+          >
+            {{ p }}
+          </button>
+          <button
+            class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40"
+            :class="currentPage < totalPages ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-300'"
+            :disabled="currentPage >= totalPages"
+            @click="currentPage++"
+          >
+            Sau →
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Form Modal -->
@@ -293,7 +415,7 @@ onMounted(loadTemplates)
               :disabled="!!editingTemplate"
               class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
             >
-              <option v-for="cat in CATEGORIES" :key="cat" :value="cat">{{ cat }}</option>
+              <option v-for="cat in CATEGORIES" :key="cat.value" :value="cat.value">{{ cat.label }}</option>
             </select>
           </div>
           <div>
@@ -308,15 +430,13 @@ onMounted(loadTemplates)
           </div>
         </div>
 
-        <!-- Thumbnail URL -->
-        <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700">Thumbnail URL</label>
-          <input
-            v-model="form.thumbnail_url"
-            placeholder="https://..."
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
+        <!-- Thumbnail -->
+        <ImageUploader
+          label="Thumbnail template"
+          :url="form.thumbnail_url"
+          purpose="other"
+          @uploaded="form.thumbnail_url = $event"
+        />
 
         <!-- is_active toggle -->
         <label class="flex cursor-pointer items-center gap-3">

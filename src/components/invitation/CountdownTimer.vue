@@ -6,6 +6,9 @@ const props = defineProps<{
   targetDate: string
   expiredMessage?: string
   theme?: ThemeConfig
+  countdownTextColor?: string
+  countdownLabelColor?: string
+  countdownBg?: string
 }>()
 
 interface Remaining { days: number; hours: number; minutes: number; seconds: number }
@@ -37,21 +40,23 @@ const LABELS: Record<keyof Remaining, string> = { days: 'Ngày', hours: 'Giờ',
       :key="unit"
       class="flex min-w-[64px] flex-col items-center justify-center rounded-xl px-3 py-4 shadow-inner backdrop-blur-sm sm:min-w-[76px]"
       :style="{
-        background: theme
-          ? `linear-gradient(135deg, ${theme.primary_color}20, ${theme.secondary_color}30)`
-          : 'rgba(255,255,255,0.15)',
+        background: countdownBg
+          ? countdownBg
+          : theme
+            ? `linear-gradient(135deg, ${theme.primary_color}20, ${theme.secondary_color}30)`
+            : 'rgba(255,255,255,0.15)',
         border: theme ? `1px solid ${theme.primary_color}30` : '1px solid rgba(255,255,255,0.2)',
       }"
     >
       <span
         class="text-4xl font-bold tabular-nums sm:text-5xl"
-        :style="theme ? { color: theme.primary_color } : { color: 'white' }"
+        :style="{ color: countdownTextColor || (theme ? theme.primary_color : 'white') }"
       >
         {{ String(val).padStart(2, '0') }}
       </span>
       <span
         class="mt-1 text-xs font-semibold tracking-widest opacity-70"
-        :style="theme ? { color: theme.text_color } : { color: 'white' }"
+        :style="{ color: countdownLabelColor || (theme ? theme.text_color : 'white') }"
       >
         {{ LABELS[unit] }}
       </span>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import type { HeroConfig, ThemeConfig } from '@/types/section.types'
+import type { HeroConfig, ThemeConfig, SectionStyle } from '@/types/section.types'
 import CountdownTimer from '@/components/invitation/CountdownTimer.vue'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 
@@ -69,6 +69,15 @@ const effectiveLayout = computed(() =>
   ?? (cfg.value.layout_variant as string | undefined)  // backward compat
   ?? 'botanical'
 )
+
+const countdownStyle = computed(() => {
+  const s = (props.config.style as SectionStyle | undefined)
+  return {
+    countdownTextColor: s?.countdown_text_color || undefined,
+    countdownLabelColor: s?.countdown_label_color || undefined,
+    countdownBg: s?.countdown_bg || undefined,
+  }
+})
 
 const isCelebrantMode = computed(() =>
   props.category === 'birthday' || props.category === 'baby_shower' || props.category === 'house_warming'
@@ -214,7 +223,7 @@ const romanDate = computed(() => {
 
       <!-- Countdown -->
       <div v-if="cfg.show_countdown && cfg.event_date" class="mt-10 animate-fade-in" style="animation-delay: 1.4s">
-        <CountdownTimer :target-date="cfg.event_date" :theme="theme" />
+        <CountdownTimer :target-date="cfg.event_date" :theme="theme" v-bind="countdownStyle" />
       </div>
     </div>
 
@@ -323,7 +332,7 @@ const romanDate = computed(() => {
 
       <!-- Countdown -->
       <div v-if="cfg.show_countdown && cfg.event_date" class="mt-10 animate-fade-in" style="animation-delay: 1.4s">
-        <CountdownTimer :target-date="cfg.event_date" :theme="theme" />
+        <CountdownTimer :target-date="cfg.event_date" :theme="theme" v-bind="countdownStyle" />
       </div>
     </div>
 
@@ -759,7 +768,7 @@ const romanDate = computed(() => {
 
       <!-- Countdown -->
       <div v-if="cfg.show_countdown && cfg.event_date" class="mt-10 animate-fade-in" style="animation-delay: 1.5s">
-        <CountdownTimer :target-date="cfg.event_date" :theme="theme" />
+        <CountdownTimer :target-date="cfg.event_date" :theme="theme" v-bind="countdownStyle" />
       </div>
     </div>
 

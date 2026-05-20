@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { Invitation } from '@/types/invitation.types'
 import type { Section, ThemeConfig } from '@/types/section.types'
 import { DEFAULT_THEME, DEFAULT_SECTIONS } from '@/types/section.types'
+import { getAllowedSections } from '@/constants/categorySections'
 import * as invitationService from '@/services/invitation.service'
 import { adminService } from '@/services/admin.service'
 
@@ -89,9 +90,22 @@ export const useEditorStore = defineStore('editor', () => {
     templateUuid.value = uuid
     templateCategory.value = data.category
     templateName.value = data.name
-    sections.value = (data.sections as Section[]).sort((a, b) => a.sort_order - b.sort_order)
+
+    let loadedSections = (data.sections as Section[]).sort((a, b) => a.sort_order - b.sort_order)
+    let needsSave = false
+
+    // Template mới chưa có section → tự động tạo defaults theo category
+    if (loadedSections.length === 0 && data.category) {
+      const allowed = getAllowedSections(data.category)
+      loadedSections = DEFAULT_SECTIONS
+        .filter(s => (allowed as string[]).includes(s.section_type))
+        .map((s, i) => ({ ...s, sort_order: i }))
+      needsSave = true
+    }
+
+    sections.value = loadedSections
     themeConfig.value = { ...DEFAULT_THEME, ...(data.theme_config as Partial<ThemeConfig>) }
-    isDirty.value = false
+    isDirty.value = needsSave
 
     if (sections.value.length > 0) {
       activeSection.value = sections.value.find(s => s.is_enabled)?.section_type ?? null
