@@ -3,7 +3,7 @@ import { computed, onMounted, watch } from 'vue'
 import { useScrollReveal } from '@/composables/useScrollReveal'
 import { loadThemeFonts } from '@/utils/fontLoader'
 import { useEditorStore } from '@/stores/editor.store'
-import type { Section, ThemeConfig, SectionType } from '@/types/section.types'
+import type { Section, ThemeConfig, SectionType, SectionStyle } from '@/types/section.types'
 import type { LayoutType } from '@/types/template.types'
 import type { Component } from 'vue'
 import HeroSection from './sections/HeroSection.vue'
@@ -81,6 +81,17 @@ const invitationCategory = computed(() =>
   editorStore.invitation?.category ?? editorStore.templateCategory ?? undefined
 )
 
+function getSectionTheme(section: Section): ThemeConfig {
+  const style = section.config.style as SectionStyle | undefined
+  if (!style) return props.theme
+  return {
+    ...props.theme,
+    ...(style.text_color ? { text_color: style.text_color } : {}),
+    ...(style.background_color ? { background_color: style.background_color } : {}),
+    ...(style.font ? { font_heading: style.font } : {}),
+  }
+}
+
 useScrollReveal()
 
 onMounted(() => {
@@ -99,7 +110,7 @@ watch(() => props.theme, (newTheme) => {
       v-for="section in sections"
       :key="section.section_type"
       :config="section.config"
-      :theme="theme"
+      :theme="getSectionTheme(section)"
       :is-preview="true"
       :category="invitationCategory"
     />

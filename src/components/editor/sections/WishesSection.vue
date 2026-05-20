@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { ThemeConfig } from '@/types/section.types'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 
-const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean; category?: string }>()
+const props = defineProps<{
+  config: Record<string, unknown>
+  theme: ThemeConfig
+  isPreview?: boolean
+  category?: string
+  slug?: string
+}>()
 
 const title = computed(() => (props.config.title as string | undefined) || 'Lời chúc')
 
@@ -38,6 +44,48 @@ const previewWishes = computed(() => {
   return PREVIEW_WISHES_WEDDING
 })
 
+interface WishItem { name: string; message: string; time: string }
+
+const realWishes = ref<WishItem[]>([])
+const isLoading = ref(false)
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60_000)
+  if (minutes < 1) return 'Vừa xong'
+  if (minutes < 60) return `${minutes} phút trước`
+  const hours = Math.floor(diff / 3_600_000)
+  if (hours < 24) return `${hours} giờ trước`
+  const days = Math.floor(diff / 86_400_000)
+  return `${days} ngày trước`
+}
+
+onMounted(async () => {
+  if (!props.slug) return
+  isLoading.value = true
+  try {
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL as string) || '/api/v1'
+    const res = await fetch(`${baseUrl}/public/invitations/${props.slug}/wishes`)
+    if (res.ok) {
+      const json = await res.json()
+      const rows = (json.data ?? []) as Array<{ name: string; rsvp_note: string; rsvp_at: string }>
+      realWishes.value = rows.map(r => ({
+        name: r.name,
+        message: r.rsvp_note,
+        time: timeAgo(r.rsvp_at),
+      }))
+    }
+  } catch { /* silent */ } finally {
+    isLoading.value = false
+  }
+})
+
+const displayWishes = computed<WishItem[]>(() =>
+  props.slug ? realWishes.value : previewWishes.value
+)
+
+const isPublicMode = computed(() => !!props.slug)
+
 function initials(name: string) {
   return name
     .split(' ')
@@ -47,7 +95,6 @@ function initials(name: string) {
     .toUpperCase()
 }
 
-// Avatar background colors cycling
 const AVATAR_BG = ['#F9A8D4', '#A5B4FC', '#86EFAC', '#FDE68A', '#C4B5FD']
 function avatarBg(index: number) { return AVATAR_BG[index % AVATAR_BG.length] }
 </script>
@@ -77,10 +124,24 @@ function avatarBg(index: number) { return AVATAR_BG[index % AVATAR_BG.length] }
         <FloralDecoration variant="divider" :color="theme.primary_color" :opacity="0.5" :size="220" />
       </div>
 
+      <!-- Loading -->
+      <div v-if="isPublicMode && isLoading" class="flex justify-center py-8">
+        <div class="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" :style="{ borderColor: theme.primary_color, borderTopColor: 'transparent' }" />
+      </div>
+
+      <!-- Empty state (public, no wishes yet) -->
+      <div
+        v-else-if="isPublicMode && displayWishes.length === 0"
+        class="py-12 text-center text-sm opacity-50"
+        :style="{ fontFamily: `'${theme.font_body}', sans-serif` }"
+      >
+        Chưa có lời chúc nào. Hãy là người đầu tiên gửi lời chúc!
+      </div>
+
       <!-- Wish cards -->
-      <div class="space-y-5">
+      <div v-else class="space-y-5">
         <div
-          v-for="(wish, i) in previewWishes"
+          v-for="(wish, i) in displayWishes"
           :key="i"
           class="flex gap-4 rounded-2xl p-5 shadow-sm transition-shadow hover:shadow-md"
           :style="{ backgroundColor: theme.primary_color + '0D', border: `1px solid ${theme.primary_color}22` }"
@@ -111,9 +172,9 @@ function avatarBg(index: number) { return AVATAR_BG[index % AVATAR_BG.length] }
         </div>
       </div>
 
-      <!-- Note in preview mode -->
+      <!-- Note in editor preview mode only -->
       <p
-        v-if="isPreview"
+        v-if="!isPublicMode"
         class="mt-8 text-center text-xs opacity-40"
         :style="{ fontFamily: `'${theme.font_body}', sans-serif` }"
       >

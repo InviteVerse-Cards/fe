@@ -5,8 +5,13 @@ import { storeToRefs } from 'pinia'
 import { useEditorStore } from '@/stores/editor.store'
 import { adminService } from '@/services/admin.service'
 import type { MusicTrack } from '@/services/admin.service'
-import { getAllowedSections } from '@/constants/categorySections'
+import { getAllowedSections, CATEGORY_LABELS, CATEGORY_COLORS } from '@/constants/categorySections'
+import { FONT_OPTIONS } from '@/types/section.types'
+import type { ThemeConfig } from '@/types/section.types'
+import { loadGoogleFont } from '@/utils/fontLoader'
 import EditorFormContainer from '@/components/editor/EditorFormContainer.vue'
+import RgbaColorPicker from '@/components/editor/RgbaColorPicker.vue'
+import ImageUploader from '@/components/editor/ImageUploader.vue'
 import PreviewPane from '@/components/editor/PreviewPane.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 import { useUIStore } from '@/stores/ui'
@@ -15,7 +20,7 @@ const route = useRoute()
 const router = useRouter()
 const editorStore = useEditorStore()
 const ui = useUIStore()
-const { isDirty, isSaving, editorMode, templateCategory, templateName } = storeToRefs(editorStore)
+const { isDirty, isSaving, editorMode, templateCategory, templateName, themeConfig } = storeToRefs(editorStore)
 
 const isLoading = ref(true)
 const showSettings = ref(false)
@@ -29,27 +34,29 @@ const settingsForm = ref({
   music_track_id: null as number | null,
 })
 
+const themeForm = ref<ThemeConfig>({ ...themeConfig.value })
+
+watch(themeConfig, (val) => { themeForm.value = { ...val } }, { deep: true })
+
+function applyTheme() {
+  editorStore.updateTheme({ ...themeForm.value })
+}
+
+function onFontChange(field: 'font_heading' | 'font_body', value: string) {
+  if (value) loadGoogleFont(value)
+  themeForm.value[field] = value
+  applyTheme()
+}
+
+function updateThemeColor(key: string, value: string) {
+  ;(themeForm.value as Record<string, string>)[key] = value
+  applyTheme()
+}
+
 const allowedSections = computed(() =>
   templateCategory.value ? getAllowedSections(templateCategory.value) : undefined
 )
 
-const categoryLabel: Record<string, string> = {
-  wedding: 'Cưới',
-  birthday: 'Sinh nhật',
-  baby_shower: 'Thôi nôi',
-  house_warming: 'Tân gia',
-  housewarming: 'Tân gia',
-  corporate: 'Doanh nghiệp',
-}
-
-const categoryColor: Record<string, string> = {
-  wedding: 'bg-rose-100 text-rose-700',
-  birthday: 'bg-amber-100 text-amber-700',
-  baby_shower: 'bg-pink-100 text-pink-700',
-  house_warming: 'bg-green-100 text-green-700',
-  housewarming: 'bg-green-100 text-green-700',
-  corporate: 'bg-blue-100 text-blue-700',
-}
 
 onMounted(async () => {
   const uuid = route.params.uuid as string
@@ -142,9 +149,9 @@ async function saveSettings() {
           <span
             v-if="templateCategory"
             class="rounded-full px-2 py-0.5 text-xs font-medium"
-            :class="categoryColor[templateCategory] ?? 'bg-gray-100 text-gray-600'"
+            :class="CATEGORY_COLORS[templateCategory] ?? 'bg-gray-100 text-gray-600'"
           >
-            {{ categoryLabel[templateCategory] ?? templateCategory }}
+            {{ CATEGORY_LABELS[templateCategory] ?? templateCategory }}
           </span>
         </div>
       </div>
@@ -243,22 +250,13 @@ async function saveSettings() {
 
             <!-- Drawer body -->
             <div class="space-y-5 p-5">
-              <!-- Thumbnail URL -->
-              <div>
-                <label class="mb-1.5 block text-sm font-medium text-gray-700">Thumbnail URL</label>
-                <input
-                  v-model="settingsForm.thumbnail_url"
-                  type="url"
-                  placeholder="https://..."
-                  class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-                <div
-                  v-if="settingsForm.thumbnail_url"
-                  class="mt-2 overflow-hidden rounded-xl border border-gray-200"
-                >
-                  <img :src="settingsForm.thumbnail_url" alt="Thumbnail preview" class="h-32 w-full object-cover" />
-                </div>
-              </div>
+              <!-- Thumbnail -->
+              <ImageUploader
+                label="Thumbnail template"
+                :url="settingsForm.thumbnail_url"
+                purpose="other"
+                @uploaded="settingsForm.thumbnail_url = $event"
+              />
 
               <!-- Plan required -->
               <div>
@@ -295,6 +293,70 @@ async function saveSettings() {
                   </option>
                 </select>
                 <p class="mt-1 text-xs text-gray-400">Nhạc này sẽ được áp dụng khi user tạo thiệp từ template</p>
+              </div>
+
+              <!-- Global font & colors -->
+              <div class="border-t border-gray-100 pt-2">
+                <h3 class="mb-3 flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                  <span>🎨</span> Phong cách chung
+                </h3>
+
+                <!-- Font tiêu đề -->
+                <div class="mb-3">
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700">Font tiêu đề</label>
+                  <select
+                    :value="themeForm.font_heading"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    @change="onFontChange('font_heading', ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option v-for="opt in FONT_OPTIONS.filter(o => o.value)" :key="opt.value" :value="opt.value">
+                      {{ opt.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Font nội dung -->
+                <div class="mb-3">
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700">Font nội dung</label>
+                  <select
+                    :value="themeForm.font_body"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    @change="onFontChange('font_body', ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option v-for="opt in FONT_OPTIONS.filter(o => o.value)" :key="opt.value" :value="opt.value">
+                      {{ opt.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Colors -->
+                <div class="space-y-3">
+                  <RgbaColorPicker
+                    label="Màu chủ đạo"
+                    default-hex="#6366f1"
+                    :model-value="themeForm.primary_color"
+                    @update:model-value="updateThemeColor('primary_color', $event)"
+                  />
+                  <RgbaColorPicker
+                    label="Màu nền"
+                    default-hex="#ffffff"
+                    :model-value="themeForm.background_color"
+                    @update:model-value="updateThemeColor('background_color', $event)"
+                  />
+                  <RgbaColorPicker
+                    label="Màu chữ"
+                    default-hex="#1f2937"
+                    :model-value="themeForm.text_color"
+                    @update:model-value="updateThemeColor('text_color', $event)"
+                  />
+                  <RgbaColorPicker
+                    label="Màu nhấn"
+                    default-hex="#f59e0b"
+                    :model-value="themeForm.accent_color"
+                    @update:model-value="updateThemeColor('accent_color', $event)"
+                  />
+                </div>
+                <p class="mt-2 text-xs text-gray-400">Thay đổi sẽ tự động lưu sau 1.5 giây</p>
               </div>
 
               <!-- Save settings button -->

@@ -32,6 +32,33 @@ export interface ThemeConfig {
   animation: 'none' | 'fade' | 'slide'
 }
 
+export interface SectionStyle {
+  font?: string             // override font heading cho section ('' = dùng global)
+  text_color?: string       // override màu chữ ('' = dùng global)
+  background_color?: string // override màu nền section ('' = trong suốt)
+  countdown_text_color?: string  // override màu số đếm ngược (hero only)
+  countdown_label_color?: string // override màu nhãn Ngày/Giờ/Phút/Giây (hero only)
+  countdown_bg?: string          // override màu nền ô đếm ngược, hỗ trợ rgba (hero only)
+}
+
+export const FONT_OPTIONS: { label: string; value: string }[] = [
+  { label: '— Theo chủ đạo —', value: '' },
+  { label: 'Great Vibes', value: 'Great Vibes' },
+  { label: 'Dancing Script', value: 'Dancing Script' },
+  { label: 'Parisienne', value: 'Parisienne' },
+  { label: 'Alex Brush', value: 'Alex Brush' },
+  { label: 'Pinyon Script', value: 'Pinyon Script' },
+  { label: 'Playfair Display', value: 'Playfair Display' },
+  { label: 'EB Garamond', value: 'EB Garamond' },
+  { label: 'Cormorant Garamond', value: 'Cormorant Garamond' },
+  { label: 'Lora', value: 'Lora' },
+  { label: 'Lato', value: 'Lato' },
+  { label: 'Montserrat', value: 'Montserrat' },
+  { label: 'Raleway', value: 'Raleway' },
+  { label: 'Nunito', value: 'Nunito' },
+  { label: 'Open Sans', value: 'Open Sans' },
+]
+
 // Section-specific config interfaces
 export interface HeroConfig {
   bride_name?: string

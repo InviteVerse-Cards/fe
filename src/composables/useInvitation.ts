@@ -55,6 +55,15 @@ export function usePublishInvitation() {
   })
 }
 
+export function useGuestList(uuid: Ref<string>, enabled: Ref<boolean>) {
+  return useQuery({
+    queryKey: computed(() => ['invitations', uuid.value, 'guests']),
+    queryFn: () => invitationService.getGuests(uuid.value),
+    enabled: computed(() => !!uuid.value && enabled.value),
+    staleTime: 0,
+  })
+}
+
 export function useDeleteInvitation() {
   const qc = useQueryClient()
   const ui = useUIStore()
