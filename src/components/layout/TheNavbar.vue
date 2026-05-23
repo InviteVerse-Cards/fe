@@ -54,15 +54,36 @@ function closeMobileMenu() {
       <!-- Desktop auth -->
       <div class="hidden items-center gap-2 sm:flex">
         <template v-if="isLoggedIn">
-          <RouterLink
-            to="/profile"
-            class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
-          >
-            <div class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-              {{ (user?.full_name || user?.email || 'U')[0]?.toUpperCase() }}
+          <div class="relative">
+            <button
+              class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
+              @click="mobileMenuOpen = !mobileMenuOpen"
+            >
+              <div class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                {{ (user?.full_name || user?.email || 'U')[0]?.toUpperCase() }}
+              </div>
+              <span class="hidden lg:inline">{{ user?.full_name || user?.email }}</span>
+            </button>
+
+            <div
+              v-if="mobileMenuOpen"
+              class="absolute right-0 mt-2 w-48 rounded-md border border-gray-200 bg-white py-2 shadow-lg"
+            >
+              <RouterLink
+                to="/profile"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                @click="mobileMenuOpen = false"
+              >
+                Hồ sơ cá nhân
+              </RouterLink>
+              <button
+                class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                @click="authStore.logout()"
+              >
+                Đăng xuất
+              </button>
             </div>
-            <span class="hidden lg:inline">{{ user?.full_name || user?.email }}</span>
-          </RouterLink>
+          </div>
         </template>
         <template v-else>
           <RouterLink

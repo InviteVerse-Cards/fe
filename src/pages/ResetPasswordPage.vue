@@ -3,6 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authService } from '@/services/auth.service'
 import { useUIStore } from '@/stores/ui'
+import { getAuthErrorMessage } from '@/utils/authError'
 import AppInput from '@/components/common/AppInput.vue'
 import AppButton from '@/components/common/AppButton.vue'
 
@@ -39,8 +40,7 @@ async function submit() {
     await authService.resetPassword(token.value, form.password)
     done.value = true
   } catch (err: unknown) {
-    const msg = (err as { message?: string })?.message
-    ui.toast.error(msg || 'Đặt lại mật khẩu thất bại. Link có thể đã hết hạn.')
+    ui.toast.error(getAuthErrorMessage(err, 'Đặt lại mật khẩu thất bại. Link có thể đã hết hạn.'))
   } finally {
     isLoading.value = false
   }

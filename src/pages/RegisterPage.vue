@@ -2,6 +2,7 @@
 import { ref, reactive } from 'vue'
 import { authService } from '@/services/auth.service'
 import { useUIStore } from '@/stores/ui'
+import { getAuthErrorMessage } from '@/utils/authError'
 import AppInput from '@/components/common/AppInput.vue'
 import AppButton from '@/components/common/AppButton.vue'
 
@@ -31,8 +32,7 @@ async function submit() {
     await authService.register({ full_name: form.full_name, email: form.email, password: form.password })
     registered.value = true
   } catch (err: unknown) {
-    const msg = (err as { message?: string })?.message
-    ui.toast.error(msg || 'Đăng ký thất bại')
+    ui.toast.error(getAuthErrorMessage(err, 'Đăng ký thất bại'))
   } finally {
     isLoading.value = false
   }
