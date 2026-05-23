@@ -32,7 +32,7 @@ async function submit() {
   <div class="flex min-h-screen items-center justify-center px-4 py-12">
     <div class="w-full max-w-sm">
       <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-indigo-600">InviteVerse</h1>
+        <RouterLink to="/" class="text-3xl font-bold text-indigo-600">InviteVerse</RouterLink>
         <p class="mt-2 text-sm text-gray-500">Đặt lại mật khẩu</p>
       </div>
 
