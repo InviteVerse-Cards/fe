@@ -16,7 +16,7 @@ const { user } = storeToRefs(auth)
 
 const page = ref(1)
 const { data, isPending, isError } = useMyInvitations(page)
-const { mutate: deleteInvitation, isPending: isDeleting } = useDeleteInvitation()
+const { mutate: deleteInvitation } = useDeleteInvitation()
 
 const guestModalOpen = ref(false)
 const selectedInvitation = ref<{ uuid: string; title: string } | null>(null)

@@ -95,6 +95,7 @@ export interface EventInfoConfig {
 }
 
 export interface GalleryConfig {
+  title?: string
   images: Array<{ url: string; caption?: string }>
   layout: 'grid' | 'masonry' | 'slider'
 }

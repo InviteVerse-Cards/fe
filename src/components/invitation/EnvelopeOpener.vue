@@ -136,7 +136,7 @@ const envColor = props.primaryColor ?? '#6366F1'
         </button>
 
         <!-- Loading indicator during opening -->
-        <div v-else-if="phase !== 'done'" class="mt-10 h-10 flex items-center">
+        <div v-else class="mt-10 h-10 flex items-center">
           <div class="flex gap-1.5">
             <span class="h-2 w-2 rounded-full animate-bounce" :style="{ backgroundColor: envColor, animationDelay: '0ms' }" />
             <span class="h-2 w-2 rounded-full animate-bounce" :style="{ backgroundColor: envColor, animationDelay: '150ms' }" />

@@ -1,7 +1,7 @@
 import type { ThemeConfig } from './section.types'
 
 export type TemplatePlan = 'free' | 'pro'
-export type TemplateCategory = 'wedding' | 'birthday' | 'baby_shower' | 'corporate'
+export type TemplateCategory = 'wedding' | 'birthday' | 'baby_shower' | 'corporate' | 'house_warming'
 
 export type LayoutType =
   | 'botanical'

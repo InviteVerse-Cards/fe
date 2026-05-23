@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import { authService } from '@/services/auth.service'
 import { useUIStore } from '@/stores/ui'
 import AppInput from '@/components/common/AppInput.vue'
 import AppButton from '@/components/common/AppButton.vue'
 
-const router = useRouter()
 const ui = useUIStore()
 
 const form = reactive({ full_name: '', email: '', password: '', confirm: '' })
