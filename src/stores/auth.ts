@@ -24,8 +24,17 @@ export const useAuthStore = defineStore('auth', () => {
   function setUser(u: User) { user.value = u }
   function clearUser() { user.value = null }
 
+  async function logout() {
+    try {
+      await authService.logout()
+      clearUser()
+    } catch (error) {
+      console.error('Logout failed', error)
+    }
+  }
+
   return {
     user, isLoggedIn, isAdmin, hasActiveCredits, hasFrozenCredits,
-    fetchMe, setUser, clearUser,
+    fetchMe, setUser, clearUser, logout,
   }
 })

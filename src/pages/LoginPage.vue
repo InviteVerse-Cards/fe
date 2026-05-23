@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/auth.service'
 import { useUIStore } from '@/stores/ui'
+import { getAuthErrorMessage } from '@/utils/authError'
 import AppInput from '@/components/common/AppInput.vue'
 import AppButton from '@/components/common/AppButton.vue'
 
@@ -33,8 +34,7 @@ async function submit() {
     const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
   } catch (err: unknown) {
-    const msg = (err as { message?: string })?.message
-    ui.toast.error(msg || 'Email hoặc mật khẩu không đúng')
+    ui.toast.error(getAuthErrorMessage(err, 'Email hoặc mật khẩu không đúng'))
   } finally {
     isLoading.value = false
   }

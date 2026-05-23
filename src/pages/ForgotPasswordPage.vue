@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { authService } from '@/services/auth.service'
 import { useUIStore } from '@/stores/ui'
+import { getAuthErrorMessage } from '@/utils/authError'
 import AppInput from '@/components/common/AppInput.vue'
 import AppButton from '@/components/common/AppButton.vue'
 
@@ -20,8 +21,7 @@ async function submit() {
     await authService.forgotPassword(email.value)
     sent.value = true
   } catch (err: unknown) {
-    const msg = (err as { message?: string })?.message
-    ui.toast.error(msg || 'Không thể gửi email. Vui lòng thử lại.')
+    ui.toast.error(getAuthErrorMessage(err, 'Không thể gửi email. Vui lòng thử lại.'))
   } finally {
     isLoading.value = false
   }
