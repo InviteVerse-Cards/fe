@@ -7,6 +7,16 @@ import AppInput from '@/components/common/AppInput.vue'
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
 const editorStore = useEditorStore()
 
+const defaultForm: BankTransferConfig = {
+  title: '',
+  bank_id: 'VCB',
+  account_number: '',
+  account_name: '',
+  amount: undefined,
+  transfer_message: '',
+  note: 'Sự hiện diện của bạn là món quà quý nhất với chúng tôi',
+}
+
 const BANKS = [
   { id: 'VCB',    name: 'Vietcombank' },
   { id: 'TCB',    name: 'Techcombank' },
@@ -25,19 +35,10 @@ const BANKS = [
   { id: 'SEAB',   name: 'SeABank' },
 ]
 
-const form = ref<BankTransferConfig>({
-  title: '',
-  bank_id: 'VCB',
-  account_number: '',
-  account_name: '',
-  amount: undefined,
-  transfer_message: '',
-  note: 'Sự hiện diện của bạn là món quà quý nhất với chúng tôi',
-  ...(props.config as unknown as BankTransferConfig),
-})
+const form = ref<BankTransferConfig>(Object.assign({}, defaultForm, props.config as unknown as Partial<BankTransferConfig>))
 
 watch(() => props.config, (newCfg) => {
-  form.value = { ...form.value, ...(newCfg as unknown as BankTransferConfig) }
+  form.value = Object.assign({}, defaultForm, newCfg as unknown as Partial<BankTransferConfig>)
 }, { deep: true })
 
 function update() {

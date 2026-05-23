@@ -4,7 +4,7 @@ import type { EventInfoConfig, ThemeConfig } from '@/types/section.types'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 
 const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean; category?: string }>()
-const cfg = computed(() => props.config as EventInfoConfig)
+const cfg = computed(() => props.config as unknown as EventInfoConfig)
 
 const sectionHeading = computed(() => {
   if (props.category === 'birthday') return 'Thông tin tiệc sinh nhật'

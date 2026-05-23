@@ -5,7 +5,7 @@ import { getThumbnailUrl } from '@/utils/cloudinaryUrl'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 
 const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean }>()
-const cfg = computed(() => props.config as GalleryConfig)
+const cfg = computed(() => props.config as unknown as GalleryConfig)
 
 const lightboxImg = ref<{ url: string; caption?: string } | null>(null)
 

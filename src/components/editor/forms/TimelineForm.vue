@@ -3,13 +3,15 @@ import { ref, watch } from 'vue'
 import { useEditorStore } from '@/stores/editor.store'
 import type { TimelineConfig, TimelineEvent } from '@/types/section.types'
 import AppInput from '@/components/common/AppInput.vue'
-import ImageUploader from '@/components/editor/ImageUploader.vue'
 
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
 const editorStore = useEditorStore()
-const form = ref<TimelineConfig>({ events: [], ...(props.config as TimelineConfig) })
+const defaultForm: TimelineConfig = { events: [] }
+const form = ref<TimelineConfig>(Object.assign({}, defaultForm, props.config as unknown as Partial<TimelineConfig>))
 
-watch(() => props.config, (v) => { form.value = { events: [], ...(v as TimelineConfig) } }, { deep: true })
+watch(() => props.config, (v) => {
+  form.value = Object.assign({}, defaultForm, v as unknown as Partial<TimelineConfig>)
+}, { deep: true })
 function sync() { editorStore.updateSectionConfig('timeline', { ...form.value }) }
 
 function addEvent() {

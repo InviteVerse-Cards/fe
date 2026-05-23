@@ -13,7 +13,7 @@ const props = defineProps<{
 const audioRef = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const hasInteracted = ref(false)
-const cfg = computed(() => props.config as MusicConfig)
+const cfg = computed(() => props.config as unknown as MusicConfig)
 const musicUrl = computed(() => cfg.value.track_url || '')
 const trackName = computed(() => cfg.value.track_name || 'Nhạc nền')
 const autoplay = computed(() => !!cfg.value.autoplay)

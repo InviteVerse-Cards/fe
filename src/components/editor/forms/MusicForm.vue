@@ -7,7 +7,8 @@ import AppSpinner from '@/components/common/AppSpinner.vue'
 
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
 const editorStore = useEditorStore()
-const form = ref<MusicConfig>({ enabled: false, autoplay: false, ...(props.config as MusicConfig) })
+const defaultForm: MusicConfig = { enabled: false, autoplay: false }
+const form = ref<MusicConfig>(Object.assign({}, defaultForm, props.config as unknown as Partial<MusicConfig>))
 
 const tracks = ref<Array<{ id: number, name: string, url: string }>>([])
 const isLoading = ref(true)
@@ -36,7 +37,7 @@ onUnmounted(() => {
 })
 
 watch(() => props.config, (v) => {
-  form.value = { enabled: false, autoplay: false, ...(v as MusicConfig) }
+  form.value = Object.assign({}, defaultForm, v as unknown as Partial<MusicConfig>)
 }, { deep: true })
 
 function togglePreview(track: { id: number, name: string, url: string }) {

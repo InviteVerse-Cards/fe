@@ -1,4 +1,4 @@
-import type { ThemeConfig } from '@/types/invitation.types'
+import type { ThemeConfig } from '@/types/section.types'
 
 export const DEFAULT_THEME: ThemeConfig = {
   primary_color: '#6366F1',

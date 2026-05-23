@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ThemeConfig } from '@/types/section.types'
-import DecorationGoldFrame from '@/components/decorations/DecorationGoldFrame.vue'
 
 const props = defineProps<{ theme: ThemeConfig }>()
 
@@ -16,11 +15,6 @@ const rootStyle = computed(() => ({
   backgroundColor: '#0F0F0F',
   color: '#F5F0E8',
   fontFamily: `'${props.theme.font_body}', sans-serif`,
-}))
-
-const sectionCardStyle = computed(() => ({
-  background: 'rgba(255,255,255,0.04)',
-  borderTop: `1px solid ${props.theme.accent_color}30`,
 }))
 </script>
 

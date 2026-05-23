@@ -1,7 +1,7 @@
 import type { ThemeConfig, Section } from './section.types'
 
 export type InvitationStatus = 'draft' | 'published' | 'archived'
-export type InvitationCategory = 'wedding' | 'birthday' | 'baby_shower' | 'corporate'
+export type InvitationCategory = 'wedding' | 'birthday' | 'baby_shower' | 'corporate' | 'house_warming'
 
 export interface Invitation {
   id: number

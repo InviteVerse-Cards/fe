@@ -8,6 +8,7 @@ import TemplateCard from '@/components/template/TemplateCard.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 import { CATEGORY_LABELS } from '@/constants/categorySections'
 import { getActiveCategories } from '@/services/template.service'
+import type { InvitationCategory } from '@/types/invitation.types'
 import type { Template } from '@/types/template.types'
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -55,7 +56,7 @@ function handlePreviewTemplate(template: Template) {
 
 function handleBlankInvitation() {
   createInvitation(
-    { title: `Thiệp - ${new Date().toLocaleDateString('vi-VN')}`, category: selectedCategory.value || 'wedding' },
+    { title: `Thiệp - ${new Date().toLocaleDateString('vi-VN')}`, category: (selectedCategory.value || 'wedding') as InvitationCategory },
     {
       onSuccess: (invitation) => {
         router.push({ name: 'Editor', params: { uuid: invitation.uuid } })

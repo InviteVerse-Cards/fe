@@ -6,10 +6,11 @@ import ImageUploader from '@/components/editor/ImageUploader.vue'
 
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
 const editorStore = useEditorStore()
-const form = ref<GalleryConfig>({ images: [], layout: 'grid', ...(props.config as GalleryConfig) })
+const defaultForm: GalleryConfig = { images: [], layout: 'grid' }
+const form = ref<GalleryConfig>(Object.assign({}, defaultForm, props.config as unknown as Partial<GalleryConfig>))
 
-watch(() => props.config, (v) => { 
-  form.value = { images: [], layout: 'grid', ...(v as GalleryConfig) } 
+watch(() => props.config, (v) => {
+  form.value = Object.assign({}, defaultForm, v as unknown as Partial<GalleryConfig>)
 }, { deep: true })
 
 function sync() {

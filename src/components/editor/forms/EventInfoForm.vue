@@ -6,9 +6,12 @@ import AppInput from '@/components/common/AppInput.vue'
 
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string; category?: string }>()
 const editorStore = useEditorStore()
-const form = ref<EventInfoConfig>({ ceremonies: [], ...(props.config as EventInfoConfig) })
+const defaultForm: EventInfoConfig = { ceremonies: [] }
+const form = ref<EventInfoConfig>(Object.assign({}, defaultForm, props.config as unknown as Partial<EventInfoConfig>))
 
-watch(() => props.config, (v) => { form.value = { ceremonies: [], ...(v as EventInfoConfig) } }, { deep: true })
+watch(() => props.config, (v) => {
+  form.value = Object.assign({}, defaultForm, v as unknown as Partial<EventInfoConfig>)
+}, { deep: true })
 
 const ceremonyLabel = {
   section: {

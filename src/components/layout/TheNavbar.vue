@@ -59,9 +59,9 @@ function closeMobileMenu() {
             class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
           >
             <div class="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-              {{ (user?.display_name || user?.email || 'U')[0]?.toUpperCase() }}
+              {{ (user?.full_name || user?.email || 'U')[0]?.toUpperCase() }}
             </div>
-            <span class="hidden lg:inline">{{ user?.display_name || user?.email }}</span>
+            <span class="hidden lg:inline">{{ user?.full_name || user?.email }}</span>
           </RouterLink>
         </template>
         <template v-else>
@@ -121,7 +121,7 @@ function closeMobileMenu() {
             class="rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
             @click="closeMobileMenu"
           >
-            👤 &nbsp;{{ user?.display_name || user?.email }}
+            👤 &nbsp;{{ user?.full_name || user?.email }}
           </RouterLink>
 
           <div v-if="!isLoggedIn" class="mt-3 flex flex-col gap-2 border-t border-gray-100 pt-3">
