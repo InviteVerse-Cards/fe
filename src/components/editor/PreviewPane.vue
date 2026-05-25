@@ -6,13 +6,12 @@ import InvitationRenderer from './InvitationRenderer.vue'
 const editorStore = useEditorStore()
 const { previewMode, enabledSections, themeConfig } = storeToRefs(editorStore)
 
-const widths = { mobile: '375px', desktop: '100%' }
 </script>
 
 <template>
   <div class="flex flex-col items-center bg-gray-100 min-h-full">
-    <!-- Device toggle bar -->
-    <div class="sticky top-0 z-10 flex w-full items-center justify-center gap-2 border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-2.5">
+    <!-- Device toggle bar (Ẩn trên mobile) -->
+    <div class="sticky top-0 z-10 hidden sm:flex w-full items-center justify-center gap-2 border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-2.5">
       <button
         v-for="mode in (['mobile', 'desktop'] as const)"
         :key="mode"
@@ -27,11 +26,10 @@ const widths = { mobile: '375px', desktop: '100%' }
     </div>
 
     <!-- Preview container -->
-    <div class="flex-1 w-full flex justify-center p-6">
+    <div class="flex-1 w-full flex justify-center p-4 sm:p-6">
       <div
-        class="overflow-hidden rounded-2xl shadow-2xl transition-all duration-300 bg-white"
+        class="overflow-hidden rounded-2xl shadow-2xl transition-all duration-300 bg-white w-full"
         :style="{
-          width: widths[previewMode],
           maxWidth: previewMode === 'mobile' ? '375px' : '100%',
           minHeight: '600px',
           transform: 'translateZ(0)',

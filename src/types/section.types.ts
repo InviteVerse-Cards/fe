@@ -122,6 +122,9 @@ export interface MapConfig {
   embed_url?: string
   venue_name?: string
   address?: string
+  place_id?: string
+  lat?: number
+  lng?: number
 }
 
 export interface RSVPConfig {
@@ -237,7 +240,7 @@ export const DEFAULT_SECTIONS: Section[] = [
   { section_type: 'gallery',       sort_order: 4,  is_enabled: false, config: { images: [], layout: 'grid' } },
   { section_type: 'timeline',      sort_order: 5,  is_enabled: false, config: { events: [] } },
   { section_type: 'countdown',     sort_order: 6,  is_enabled: true,  config: {} },
-  { section_type: 'map',           sort_order: 7,  is_enabled: false, config: { embed_url: '' } },
+  { section_type: 'map',           sort_order: 7,  is_enabled: false, config: { embed_url: '', venue_name: '', address: '' } },
   { section_type: 'rsvp',          sort_order: 8,  is_enabled: true,  config: { title: 'Xác nhận tham dự' } },
   { section_type: 'bank_transfer', sort_order: 9,  is_enabled: false, config: { bank_id: 'VCB', account_number: '', account_name: '' } },
   { section_type: 'music',         sort_order: 10, is_enabled: false, config: { enabled: false, autoplay: false } },

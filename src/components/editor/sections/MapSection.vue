@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { computed } from 'vue'
 import type { ThemeConfig } from '@/types/section.types'
+import { buildGoogleMapsEmbedUrl, buildGoogleMapsOpenUrl, getGoogleMapsApiKey } from '@/utils/googleMaps'
 
 const props = defineProps<{
   config: Record<string, unknown>
@@ -11,22 +12,27 @@ const props = defineProps<{
 const venueName = computed(() => (props.config.venue_name as string) || '')
 const address = computed(() => (props.config.address as string) || '')
 const embedUrl = computed(() => (props.config.embed_url as string) || '')
+const placeId = computed(() => (props.config.place_id as string) || '')
+const lat = computed(() => typeof props.config.lat === 'number' ? props.config.lat : undefined)
+const lng = computed(() => typeof props.config.lng === 'number' ? props.config.lng : undefined)
+const mapEmbedUrl = computed(() => buildGoogleMapsEmbedUrl({
+  apiKey: getGoogleMapsApiKey(),
+  embedUrl: embedUrl.value,
+  placeId: placeId.value,
+  address: address.value,
+  lat: lat.value,
+  lng: lng.value,
+}))
 const mapsUrl = computed(() => {
-  if (address.value) return `https://maps.google.com/maps?q=${encodeURIComponent(address.value)}`
-  return ''
+  return buildGoogleMapsOpenUrl({
+    placeId: placeId.value,
+    address: address.value,
+    lat: lat.value,
+    lng: lng.value,
+  })
 })
 
-const iframeVisible = ref(false)
-const containerRef = ref<HTMLElement | null>(null)
-
-onMounted(() => {
-  if (!embedUrl.value) return
-  const observer = new IntersectionObserver(
-    ([entry]) => { if (entry.isIntersecting) { iframeVisible.value = true; observer.disconnect() } },
-    { threshold: 0.1 }
-  )
-  if (containerRef.value) observer.observe(containerRef.value)
-})
+const iframeVisible = computed(() => Boolean(mapEmbedUrl.value))
 </script>
 
 <template>
@@ -51,10 +57,10 @@ onMounted(() => {
       </div>
 
       <!-- Map embed -->
-      <div ref="containerRef" class="relative overflow-hidden rounded-2xl border border-gray-200 shadow-sm" style="height: 300px">
+      <div class="relative overflow-hidden rounded-2xl border border-gray-200 shadow-sm" style="height: 300px">
         <iframe
-          v-if="iframeVisible && embedUrl"
-          :src="embedUrl"
+          v-if="iframeVisible && mapEmbedUrl"
+          :src="mapEmbedUrl"
           class="h-full w-full"
           style="border: 0"
           allowfullscreen
