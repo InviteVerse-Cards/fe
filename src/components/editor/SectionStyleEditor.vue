@@ -5,6 +5,7 @@ import { FONT_OPTIONS } from '@/types/section.types'
 import type { SectionStyle } from '@/types/section.types'
 import { loadGoogleFont } from '@/utils/fontLoader'
 import RgbaColorPicker from './RgbaColorPicker.vue'
+import AppFontSelect from '@/components/common/AppFontSelect.vue'
 
 const props = defineProps<{
   sectionType: string
@@ -36,15 +37,12 @@ function onFontChange(value: string) {
     <!-- Font (tất cả section) -->
     <div>
       <label class="mb-1.5 block text-xs font-medium text-gray-600">Font chữ</label>
-      <select
-        :value="form.font ?? ''"
-        class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-        @change="onFontChange(($event.target as HTMLSelectElement).value)"
-      >
-        <option v-for="opt in FONT_OPTIONS" :key="opt.value" :value="opt.value">
-          {{ opt.label }}
-        </option>
-      </select>
+      <AppFontSelect
+        :model-value="form.font ?? ''"
+        :options="FONT_OPTIONS"
+        button-class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+        @update:model-value="onFontChange"
+      />
     </div>
 
     <!-- Màu chữ + Màu nền: chỉ cho non-hero -->

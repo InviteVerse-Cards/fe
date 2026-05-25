@@ -19,16 +19,25 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(props.defaultOpen)
+const showOverflow = ref(props.defaultOpen)
 
 function togglePanel() {
   if (props.collapsible) {
     isOpen.value = !isOpen.value
   }
 }
+
+function onAfterEnter() {
+  showOverflow.value = true
+}
+
+function onBeforeLeave() {
+  showOverflow.value = false
+}
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+  <div class="rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
     <!-- Header -->
     <div
       class="flex cursor-pointer items-center justify-between px-5 py-4 select-none"
@@ -76,8 +85,10 @@ function togglePanel() {
       leave-active-class="transition-all duration-200 ease-in"
       leave-from-class="max-h-[2000px] opacity-100"
       leave-to-class="max-h-0 opacity-0"
+      @after-enter="onAfterEnter"
+      @before-leave="onBeforeLeave"
     >
-      <div v-show="isOpen" class="overflow-hidden">
+      <div v-show="isOpen" :class="[showOverflow ? 'overflow-visible' : 'overflow-hidden']">
         <div class="border-t border-gray-100 px-5 py-5">
           <slot />
         </div>

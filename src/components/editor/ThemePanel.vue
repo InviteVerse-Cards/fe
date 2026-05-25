@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { useEditorStore } from '@/stores/editor.store'
 import type { ThemeConfig } from '@/types/section.types'
+import AppFontSelect from '@/components/common/AppFontSelect.vue'
 
 const editorStore = useEditorStore()
 const { themeConfig } = storeToRefs(editorStore)
@@ -49,23 +50,21 @@ const borderRadiusOptions: Array<{ value: ThemeConfig['border_radius']; label: s
       <div class="space-y-3">
         <div>
           <label class="mb-1 block text-sm text-gray-700">Tiêu đề</label>
-          <select
-            :value="themeConfig.font_heading"
-            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-            @change="editorStore.updateTheme({ font_heading: ($event.target as HTMLSelectElement).value })"
-          >
-            <option v-for="font in headingFonts" :key="font" :value="font">{{ font }}</option>
-          </select>
+          <AppFontSelect
+            :model-value="themeConfig.font_heading"
+            :options="headingFonts"
+            button-class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+            @update:model-value="editorStore.updateTheme({ font_heading: $event })"
+          />
         </div>
         <div>
           <label class="mb-1 block text-sm text-gray-700">Nội dung</label>
-          <select
-            :value="themeConfig.font_body"
-            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-            @change="editorStore.updateTheme({ font_body: ($event.target as HTMLSelectElement).value })"
-          >
-            <option v-for="font in bodyFonts" :key="font" :value="font">{{ font }}</option>
-          </select>
+          <AppFontSelect
+            :model-value="themeConfig.font_body"
+            :options="bodyFonts"
+            button-class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+            @update:model-value="editorStore.updateTheme({ font_body: $event })"
+          />
         </div>
       </div>
     </div>
