@@ -83,12 +83,24 @@ const previewRomanDate = computed(() => {
   const roman = nextYear === 2027 ? 'MMXXVII' : 'MMXXVI'
   return `XII · XII · ${roman}`
 })
+
+// ── Mobile touch handling ─────────────────────────────────────────
+// On touch devices there's no hover, so the action buttons never show.
+// First tap reveals the overlay; second tap (or button tap) acts.
+
+function handleCardClick() {
+  // If this is a pointer (mouse) device, do nothing — hover handles it
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+  // On touch: go straight to preview
+  emit('preview', props.template)
+}
 </script>
 
 <template>
   <div class="flex flex-col">
     <div
       class="group relative aspect-[3/5] cursor-pointer overflow-hidden rounded-2xl shadow-md transition-shadow duration-300 hover:shadow-xl"
+      @click="handleCardClick"
     >
       <!-- ═══════════════════════════════════════════════
            INNER SCROLL CONTAINER — height: 200%
