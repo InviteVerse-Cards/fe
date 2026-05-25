@@ -8,6 +8,7 @@ const router = useRouter()
 const navItems = [
   { icon: '📊', label: 'Tổng quan',   name: 'AdminDashboard' },
   { icon: '👥', label: 'Người dùng',  name: 'AdminUsers' },
+  { icon: '💌', label: 'Quản lý thiệp', name: 'AdminInvitations' },
   { icon: '🎨', label: 'Templates',        name: 'AdminTemplates' },
   { icon: '📂', label: 'Hiển thị user',   name: 'AdminCategories' },
   { icon: '🎵', label: 'Quản lý nhạc',   name: 'AdminMusic' },

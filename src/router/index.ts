@@ -72,6 +72,7 @@ const router = createRouter({
         { path: '',               name: 'AdminDashboard', component: () => import('@/pages/admin/DashboardPage.vue') },
         { path: 'users',          name: 'AdminUsers',     component: () => import('@/pages/admin/UsersPage.vue') },
         { path: 'users/:id',      name: 'AdminUserDetail', component: () => import('@/pages/admin/UserDetailPage.vue') },
+        { path: 'invitations',    name: 'AdminInvitations', component: () => import('@/pages/admin/InvitationsPage.vue') },
         { path: 'credit-orders',  name: 'AdminOrders',    component: () => import('@/pages/admin/CreditOrdersPage.vue') },
         { path: 'credit-packages', name: 'AdminPackages', component: () => import('@/pages/admin/CreditPackagesPage.vue') },
         { path: 'ai-models',      name: 'AdminAIModels',  component: () => import('@/pages/admin/AIModelsPage.vue') },

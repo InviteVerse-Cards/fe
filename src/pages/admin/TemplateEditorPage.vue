@@ -9,6 +9,7 @@ import { getAllowedSections, CATEGORY_LABELS, CATEGORY_COLORS } from '@/constant
 import { FONT_OPTIONS } from '@/types/section.types'
 import type { ThemeConfig } from '@/types/section.types'
 import { loadGoogleFont } from '@/utils/fontLoader'
+import AppFontSelect from '@/components/common/AppFontSelect.vue'
 import EditorFormContainer from '@/components/editor/EditorFormContainer.vue'
 import RgbaColorPicker from '@/components/editor/RgbaColorPicker.vue'
 import ImageUploader from '@/components/editor/ImageUploader.vue'
@@ -304,29 +305,23 @@ async function saveSettings() {
                 <!-- Font tiêu đề -->
                 <div class="mb-3">
                   <label class="mb-1.5 block text-sm font-medium text-gray-700">Font tiêu đề</label>
-                  <select
-                    :value="themeForm.font_heading"
-                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    @change="onFontChange('font_heading', ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option v-for="opt in FONT_OPTIONS.filter(o => o.value)" :key="opt.value" :value="opt.value">
-                      {{ opt.label }}
-                    </option>
-                  </select>
+                  <AppFontSelect
+                    :model-value="themeForm.font_heading"
+                    :options="FONT_OPTIONS.filter(o => o.value)"
+                    button-class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    @update:model-value="onFontChange('font_heading', $event)"
+                  />
                 </div>
 
                 <!-- Font nội dung -->
                 <div class="mb-3">
                   <label class="mb-1.5 block text-sm font-medium text-gray-700">Font nội dung</label>
-                  <select
-                    :value="themeForm.font_body"
-                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    @change="onFontChange('font_body', ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option v-for="opt in FONT_OPTIONS.filter(o => o.value)" :key="opt.value" :value="opt.value">
-                      {{ opt.label }}
-                    </option>
-                  </select>
+                  <AppFontSelect
+                    :model-value="themeForm.font_body"
+                    :options="FONT_OPTIONS.filter(o => o.value)"
+                    button-class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    @update:model-value="onFontChange('font_body', $event)"
+                  />
                 </div>
 
                 <!-- Colors -->

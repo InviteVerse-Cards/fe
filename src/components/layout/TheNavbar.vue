@@ -70,6 +70,14 @@ function closeMobileMenu() {
               class="absolute right-0 mt-2 w-48 rounded-md border border-gray-200 bg-white py-2 shadow-lg"
             >
               <RouterLink
+                v-if="user?.role === 'admin'"
+                to="/admin"
+                class="block px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50"
+                @click="mobileMenuOpen = false"
+              >
+                Quản trị viên
+              </RouterLink>
+              <RouterLink
                 to="/profile"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 @click="mobileMenuOpen = false"
@@ -78,7 +86,7 @@ function closeMobileMenu() {
               </RouterLink>
               <button
                 class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                @click="authStore.logout()"
+                @click="authStore.logout(); mobileMenuOpen = false;"
               >
                 Đăng xuất
               </button>
@@ -135,6 +143,14 @@ function closeMobileMenu() {
             @click="closeMobileMenu"
           >
             💌 &nbsp;Thiệp của tôi
+          </RouterLink>
+          <RouterLink
+            v-if="isLoggedIn && user?.role === 'admin'"
+            to="/admin"
+            class="rounded-xl px-4 py-3 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors"
+            @click="closeMobileMenu"
+          >
+            🛡️ &nbsp;Quản trị viên
           </RouterLink>
           <RouterLink
             v-if="isLoggedIn"
