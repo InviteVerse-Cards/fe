@@ -6,7 +6,6 @@ import InvitationRenderer from './InvitationRenderer.vue'
 const editorStore = useEditorStore()
 const { previewMode, enabledSections, themeConfig } = storeToRefs(editorStore)
 
-const widths = { mobile: '375px', desktop: '100%' }
 </script>
 
 <template>

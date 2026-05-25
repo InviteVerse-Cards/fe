@@ -49,6 +49,7 @@ export interface CreateInvitationPayload {
 
 export interface UpdateInvitationPayload {
   title?: string
+  template_id?: number
   theme_config?: ThemeConfig
   sections?: Array<{
     section_type: string
