@@ -1,41 +1,51 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import { useEditorStore } from '@/stores/editor.store'
-import type { HeroConfig } from '@/types/section.types'
-import AppInput from '@/components/common/AppInput.vue'
-import ImageUploader from '@/components/editor/ImageUploader.vue'
+import { ref, watch, computed } from "vue";
+import { useEditorStore } from "@/stores/editor.store";
+import type { HeroConfig } from "@/types/section.types";
+import AppInput from "@/components/common/AppInput.vue";
+import ImageUploader from "@/components/editor/ImageUploader.vue";
 
-const props = defineProps<{ config: Record<string, unknown>; sectionType: string; category?: string }>()
-const editorStore = useEditorStore()
+const props = defineProps<{
+  config: Record<string, unknown>;
+  sectionType: string;
+  category?: string;
+}>();
+const editorStore = useEditorStore();
 const form = ref<HeroConfig>({
-  display_order: 'groom_first',
+  display_order: "groom_first",
   ...(props.config as HeroConfig),
-})
+});
 
-watch(() => props.config, (v) => {
-  form.value = { display_order: 'groom_first', ...(v as HeroConfig) }
-}, { deep: true })
+watch(
+  () => props.config,
+  (v) => {
+    form.value = { display_order: "groom_first", ...(v as HeroConfig) };
+  },
+  { deep: true },
+);
 
 function update(field: keyof HeroConfig, value: unknown) {
-  form.value[field] = value as never
-  editorStore.updateSectionConfig('hero', { [field]: value })
+  form.value[field] = value as never;
+  editorStore.updateSectionConfig("hero", { [field]: value });
 }
 
-const isWeddingMode = computed(() =>
-  !props.category || props.category === 'wedding'
-)
+const isWeddingMode = computed(
+  () => !props.category || props.category === "wedding",
+);
 
 const celebrantLabel = computed(() => {
-  if (props.category === 'baby_shower') return 'Tên bé'
-  if (props.category === 'house_warming' || props.category === 'housewarming') return 'Tên gia đình / chủ nhà'
-  return 'Tên nhân vật chính'
-})
+  if (props.category === "baby_shower") return "Tên bé";
+  if (props.category === "house_warming" || props.category === "housewarming")
+    return "Tên gia đình / chủ nhà";
+  return "Tên nhân vật chính";
+});
 
 const celebrantPlaceholder = computed(() => {
-  if (props.category === 'baby_shower') return 'Nguyễn Minh Khoa'
-  if (props.category === 'house_warming' || props.category === 'housewarming') return 'Gia đình Trần Văn Hùng'
-  return 'Nguyễn Bảo Ngọc'
-})
+  if (props.category === "baby_shower") return "Nguyễn Minh Khoa";
+  if (props.category === "house_warming" || props.category === "housewarming")
+    return "Gia đình Trần Văn Hùng";
+  return "Nguyễn Bảo Ngọc";
+});
 </script>
 
 <template>
@@ -47,13 +57,13 @@ const celebrantPlaceholder = computed(() => {
         <AppInput
           label="Họ tên chú rể"
           :model-value="form.groom_name ?? ''"
-          placeholder="Đoàn Thanh Tuấn"
+          placeholder="Ngô Bảo An"
           @update:model-value="update('groom_name', $event)"
         />
         <AppInput
           label="Họ tên cô dâu"
           :model-value="form.bride_name ?? ''"
-          placeholder="Ngô Thị Hằng Nga"
+          placeholder="Nguyễn Thị Cẩm Tú"
           @update:model-value="update('bride_name', $event)"
         />
       </div>
@@ -63,13 +73,13 @@ const celebrantPlaceholder = computed(() => {
         <AppInput
           label="Tên ngắn chú rể"
           :model-value="form.groom_short_name ?? ''"
-          placeholder="Thanh Tuấn"
+          placeholder="Bảo An"
           @update:model-value="update('groom_short_name', $event)"
         />
         <AppInput
           label="Tên ngắn cô dâu"
           :model-value="form.bride_short_name ?? ''"
-          placeholder="Hằng Nga"
+          placeholder="Cẩm Tú"
           @update:model-value="update('bride_short_name', $event)"
         />
       </div>
@@ -92,29 +102,41 @@ const celebrantPlaceholder = computed(() => {
 
       <!-- Thứ tự hiển thị -->
       <div class="space-y-2">
-        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Thứ tự hiển thị</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
+          Thứ tự hiển thị
+        </p>
         <div class="grid grid-cols-2 gap-3">
           <button
             class="rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all"
-            :class="form.display_order === 'groom_first'
-              ? 'border-rose-400 bg-rose-50 text-rose-700'
-              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
+            :class="
+              form.display_order === 'groom_first'
+                ? 'border-rose-400 bg-rose-50 text-rose-700'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+            "
             @click="update('display_order', 'groom_first')"
           >
             Nhà trai trước
           </button>
           <button
             class="rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all"
-            :class="form.display_order === 'bride_first'
-              ? 'border-rose-400 bg-rose-50 text-rose-700'
-              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
+            :class="
+              form.display_order === 'bride_first'
+                ? 'border-rose-400 bg-rose-50 text-rose-700'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+            "
             @click="update('display_order', 'bride_first')"
           >
             Nhà gái trước
           </button>
         </div>
         <p class="text-xs text-gray-400">
-          Hiển thị tên {{ form.display_order === 'groom_first' ? 'chú rể và nhà trai' : 'cô dâu và nhà gái' }} trước trên thiệp
+          Hiển thị tên
+          {{
+            form.display_order === "groom_first"
+              ? "chú rể và nhà trai"
+              : "cô dâu và nhà gái"
+          }}
+          trước trên thiệp
         </p>
       </div>
     </template>
@@ -123,18 +145,29 @@ const celebrantPlaceholder = computed(() => {
     <template v-else>
       <AppInput
         :label="celebrantLabel"
-        :model-value="(form as Record<string, unknown>).celebrant_name as string ?? ''"
+        :model-value="
+          ((form as Record<string, unknown>).celebrant_name as string) ?? ''
+        "
         :placeholder="celebrantPlaceholder"
-        @update:model-value="update('celebrant_name' as keyof HeroConfig, $event)"
+        @update:model-value="
+          update('celebrant_name' as keyof HeroConfig, $event)
+        "
       />
 
       <AppInput
         v-if="category === 'birthday'"
         label="Tuổi (milestone)"
         type="number"
-        :model-value="String((form as Record<string, unknown>).age_milestone ?? '')"
+        :model-value="
+          String((form as Record<string, unknown>).age_milestone ?? '')
+        "
         placeholder="18"
-        @update:model-value="update('age_milestone' as keyof HeroConfig, $event ? Number($event) : undefined)"
+        @update:model-value="
+          update(
+            'age_milestone' as keyof HeroConfig,
+            $event ? Number($event) : undefined,
+          )
+        "
       />
     </template>
 
@@ -171,30 +204,47 @@ const celebrantPlaceholder = computed(() => {
 
     <!-- Ảnh đại diện/ảnh đôi -->
     <div class="space-y-3 border-t border-gray-100 pt-6">
-      <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Ảnh đại diện thiệp (Nếu mẫu có hỗ trợ)</p>
-      <div class="flex flex-col items-center gap-4 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-6">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+        Ảnh đại diện thiệp (Nếu mẫu có hỗ trợ)
+      </p>
+      <div
+        class="flex flex-col items-center gap-4 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-6"
+      >
         <div class="relative group">
-          <div 
+          <div
             class="h-44 w-32 overflow-hidden rounded-[2rem] border-4 border-white shadow-lg transition-transform group-hover:scale-105"
-            :class="!form.couple_photo_url ? 'bg-gray-100 flex items-center justify-center' : ''"
+            :class="
+              !form.couple_photo_url
+                ? 'bg-gray-100 flex items-center justify-center'
+                : ''
+            "
           >
-            <img 
-              v-if="form.couple_photo_url" 
-              :src="form.couple_photo_url" 
-              class="h-full w-full object-cover" 
+            <img
+              v-if="form.couple_photo_url"
+              :src="form.couple_photo_url"
+              class="h-full w-full object-cover"
             />
-            <svg v-else class="h-16 w-16 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            <svg
+              v-else
+              class="h-16 w-16 text-gray-300"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              />
             </svg>
           </div>
         </div>
-        <ImageUploader 
-          purpose="avatar" 
-          @uploaded="update('couple_photo_url', $event)" 
+        <ImageUploader
+          purpose="avatar"
+          @uploaded="update('couple_photo_url', $event)"
         />
-        <p class="text-[10px] text-gray-400">JPG, PNG, GIF, WebP, HEIC. Hiển thị dưới dạng khung dọc/oval ở đầu thiệp.</p>
+        <p class="text-[10px] text-gray-400">
+          JPG, PNG, GIF, WebP, HEIC. Hiển thị dưới dạng khung dọc/oval ở đầu
+          thiệp.
+        </p>
       </div>
     </div>
-
   </div>
 </template>
