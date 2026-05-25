@@ -124,7 +124,7 @@ function handleBlankInvitation() {
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 
           <!-- Blank card -->
-          <div class="flex flex-col">
+          <div v-if="selectedCategory === 'wedding'" class="flex flex-col">
             <button
               class="group relative aspect-[3/5] cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 bg-white transition-all duration-300 hover:border-indigo-400 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="isCreating"
