@@ -1,58 +1,67 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useAuthStore } from '@/stores/auth'
-import { useMyInvitations, useDeleteInvitation } from '@/composables/useInvitation'
-import InvitationCard from '@/components/invitation/InvitationCard.vue'
-import GuestListModal from '@/components/invitation/GuestListModal.vue'
-import ShareModal from '@/components/invitation/ShareModal.vue'
-import AppSpinner from '@/components/common/AppSpinner.vue'
-import type { Invitation } from '@/types/invitation.types'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
+import {
+  useMyInvitations,
+  useDeleteInvitation,
+} from "@/composables/useInvitation";
+import InvitationCard from "@/components/invitation/InvitationCard.vue";
+import GuestListModal from "@/components/invitation/GuestListModal.vue";
+import ShareModal from "@/components/invitation/ShareModal.vue";
+import AppSpinner from "@/components/common/AppSpinner.vue";
+import type { Invitation } from "@/types/invitation.types";
 
-const router = useRouter()
-const auth = useAuthStore()
-const { user } = storeToRefs(auth)
+const router = useRouter();
+const auth = useAuthStore();
+const { user } = storeToRefs(auth);
 
-const page = ref(1)
-const { data, isPending, isError } = useMyInvitations(page)
-const { mutate: deleteInvitation } = useDeleteInvitation()
+const page = ref(1);
+const { data, isPending, isError } = useMyInvitations(page);
+const { mutate: deleteInvitation } = useDeleteInvitation();
 
-const guestModalOpen = ref(false)
-const selectedInvitation = ref<{ uuid: string; title: string } | null>(null)
+const guestModalOpen = ref(false);
+const selectedInvitation = ref<{ uuid: string; title: string } | null>(null);
 
-const shareModalOpen = ref(false)
-const selectedShare = ref<{ publicUrl: string; qrCodeUrl: string; title: string } | null>(null)
+const shareModalOpen = ref(false);
+const selectedShare = ref<{
+  publicUrl: string;
+  qrCodeUrl: string;
+  title: string;
+} | null>(null);
 
 function goToTemplates() {
-  router.push({ name: 'Templates' })
+  router.push({ name: "Templates" });
 }
 
 function goToEditor(uuid: string) {
-  router.push({ name: 'Editor', params: { uuid } })
+  router.push({ name: "Editor", params: { uuid } });
 }
 
 function handleDelete(uuid: string) {
-  if (confirm('Bạn có chắc muốn xóa thiệp này? Hành động không thể hoàn tác.')) {
-    deleteInvitation(uuid)
+  if (
+    confirm("Bạn có chắc muốn xóa thiệp này? Hành động không thể hoàn tác.")
+  ) {
+    deleteInvitation(uuid);
   }
 }
 
 function openGuestList(uuid: string) {
-  const inv = data.value?.items.find((i: Invitation) => i.uuid === uuid)
-  selectedInvitation.value = { uuid, title: inv?.title ?? '' }
-  guestModalOpen.value = true
+  const inv = data.value?.items.find((i: Invitation) => i.uuid === uuid);
+  selectedInvitation.value = { uuid, title: inv?.title ?? "" };
+  guestModalOpen.value = true;
 }
 
 function openShare(uuid: string) {
-  const inv = data.value?.items.find((i: Invitation) => i.uuid === uuid)
-  if (!inv) return
+  const inv = data.value?.items.find((i: Invitation) => i.uuid === uuid);
+  if (!inv) return;
   selectedShare.value = {
-    publicUrl: `${import.meta.env.VITE_PUBLIC_BASE_URL}/i/${inv.slug}`,
-    qrCodeUrl: inv.qr_code_url ?? '',
+    publicUrl: `${import.meta.env.VITE_APP_URL}/i/${inv.slug}`,
+    qrCodeUrl: inv.qr_code_url ?? "",
     title: inv.title,
-  }
-  shareModalOpen.value = true
+  };
+  shareModalOpen.value = true;
 }
 </script>
 
@@ -64,7 +73,8 @@ function openShare(uuid: string) {
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Thiệp của tôi</h1>
           <p class="mt-1 text-sm text-gray-500">
-            Xin chào, {{ user?.full_name }}! Quản lý tất cả thiệp của bạn tại đây.
+            Xin chào, {{ user?.full_name }}! Quản lý tất cả thiệp của bạn tại
+            đây.
           </p>
         </div>
         <button
@@ -81,7 +91,10 @@ function openShare(uuid: string) {
       </div>
 
       <!-- Error -->
-      <div v-else-if="isError" class="rounded-xl bg-red-50 p-6 text-center text-red-600">
+      <div
+        v-else-if="isError"
+        class="rounded-xl bg-red-50 p-6 text-center text-red-600"
+      >
         Không thể tải danh sách thiệp. Vui lòng thử lại.
       </div>
 
@@ -91,8 +104,12 @@ function openShare(uuid: string) {
         class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 py-20 text-center"
       >
         <div class="mb-4 text-5xl">💌</div>
-        <h3 class="text-lg font-semibold text-gray-900">Bạn chưa có thiệp nào</h3>
-        <p class="mt-2 text-sm text-gray-500">Chọn một mẫu thiệp và bắt đầu tạo ngay!</p>
+        <h3 class="text-lg font-semibold text-gray-900">
+          Bạn chưa có thiệp nào
+        </h3>
+        <p class="mt-2 text-sm text-gray-500">
+          Chọn một mẫu thiệp và bắt đầu tạo ngay!
+        </p>
         <button
           class="mt-6 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
           @click="goToTemplates"
@@ -123,7 +140,11 @@ function openShare(uuid: string) {
           v-for="p in data.pagination.total_pages"
           :key="p"
           class="min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          :class="page === p ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'"
+          :class="
+            page === p
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          "
           @click="page = p"
         >
           {{ p }}
