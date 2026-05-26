@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { usePublishInvitation } from '@/composables/useInvitation'
-import type { Invitation } from '@/types/invitation.types'
-import AppModal from '@/components/common/AppModal.vue'
-import AppInput from '@/components/common/AppInput.vue'
-import ShareModal from './ShareModal.vue'
+import { ref } from "vue";
+import { usePublishInvitation } from "@/composables/useInvitation";
+import type { Invitation } from "@/types/invitation.types";
+import AppModal from "@/components/common/AppModal.vue";
+import AppInput from "@/components/common/AppInput.vue";
+import ShareModal from "./ShareModal.vue";
 
 const props = defineProps<{
-  show: boolean
-  invitation: Invitation
-}>()
-const emit = defineEmits<{ (e: 'close'): void }>()
+  show: boolean;
+  invitation: Invitation;
+}>();
+const emit = defineEmits<{ (e: "close"): void }>();
 
-const customSlug = ref('')
-const password = ref('')
-const expiresAt = ref('')
+const customSlug = ref("");
+const password = ref("");
+const expiresAt = ref("");
 
-const { mutate: publish, isPending } = usePublishInvitation()
-const publishResult = ref<{ public_url: string; qr_code_url: string; slug: string } | null>(null)
-const showShareModal = ref(false)
+const { mutate: publish, isPending } = usePublishInvitation();
+const publishResult = ref<{
+  public_url: string;
+  qr_code_url: string;
+  slug: string;
+} | null>(null);
+const showShareModal = ref(false);
 
 function handlePublish() {
   publish(
@@ -32,15 +36,15 @@ function handlePublish() {
     },
     {
       onSuccess: (data) => {
-        publishResult.value = data
-        emit('close')
-        showShareModal.value = true
+        publishResult.value = data;
+        emit("close");
+        showShareModal.value = true;
       },
-    }
-  )
+    },
+  );
 }
 
-const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'yourdomain.com'
+const baseUrl = import.meta.env.VITE_APP_URL || "yourdomain.com";
 </script>
 
 <template>
@@ -91,7 +95,7 @@ const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'yourdomain.com'
           :disabled="isPending"
           @click="handlePublish"
         >
-          {{ isPending ? 'Đang xuất bản...' : '🚀 Xuất bản ngay' }}
+          {{ isPending ? "Đang xuất bản..." : "🚀 Xuất bản ngay" }}
         </button>
       </div>
     </div>
