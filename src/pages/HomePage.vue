@@ -3,10 +3,35 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { useTemplates } from '@/composables/useTemplate'
+import TemplateCard from '@/components/template/TemplateCard.vue'
+import { useCreateInvitation } from '@/composables/useInvitation'
+import { CATEGORY_LABELS } from '@/constants/categorySections'
 
 const auth = useAuthStore()
 const router = useRouter()
-const { data: templates } = useTemplates(ref('wedding'))
+const { data: templates } = useTemplates(ref(undefined))
+const { mutate: createInvitation, isPending: isCreating } = useCreateInvitation()
+
+function handleSelectTemplate(template: any) {
+  if (!auth.isLoggedIn) {
+    router.push({ name: 'Register' })
+    return
+  }
+  const label = CATEGORY_LABELS[template.category] ?? 'Thiệp'
+  createInvitation(
+    { template_id: template.id, title: `${label} - ${new Date().toLocaleDateString('vi-VN')}`, category: template.category },
+    {
+      onSuccess: (invitation) => {
+        router.push({ name: 'Editor', params: { uuid: invitation.uuid } })
+      },
+    }
+  )
+}
+
+function handlePreviewTemplate(template: any) {
+  router.push(`/templates/${template.slug}`)
+}
+
 
 const marqueeItems = computed(() => {
   const list = templates.value ?? []
@@ -294,36 +319,25 @@ const reviews = [
 
       <!-- Marquee track -->
       <div class="relative">
-        <div v-if="marqueeItems.length" class="flex gap-4 marquee-track px-2">
-          <RouterLink
+        <div v-if="marqueeItems.length" class="flex gap-4 marquee-track px-2 py-4">
+          <TemplateCard
             v-for="item in marqueeItems"
             :key="item.k"
-            :to="`/templates/${item.t.slug}`"
-            class="group flex-shrink-0"
-          >
-            <div class="relative h-[220px] w-[148px] overflow-hidden rounded-2xl bg-gray-200 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
-              <div
-                class="absolute inset-0"
-                :style="{ background: `linear-gradient(150deg, ${item.t.theme_preview?.primary_color ?? '#6366F1'}ee, ${item.t.theme_preview?.secondary_color ?? '#A5B4FC'}99)` }"
-              />
-              <img
-                v-if="item.t.thumbnail_url"
-                :src="item.t.thumbnail_url"
-                :alt="item.t.name"
-                class="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div class="absolute inset-x-0 bottom-0 p-3">
-                <p class="text-[11px] font-semibold text-white line-clamp-1">{{ item.t.name }}</p>
-              </div>
-            </div>
-          </RouterLink>
+            :template="item.t"
+            :is-selecting="isCreating"
+            class="w-[148px] sm:w-[180px] md:w-[220px] flex-shrink-0"
+            @select="handleSelectTemplate"
+            @preview="handlePreviewTemplate"
+          />
         </div>
 
         <!-- Skeleton placeholders while loading -->
-        <div v-else class="flex gap-4 px-2">
-          <div v-for="i in 8" :key="i" class="h-[220px] w-[148px] flex-shrink-0 animate-pulse rounded-2xl bg-gray-200" />
+        <div v-else class="flex gap-4 px-2 py-4">
+          <div v-for="i in 8" :key="i" class="w-[148px] sm:w-[180px] md:w-[220px] flex-shrink-0 flex flex-col gap-2.5">
+            <div class="aspect-[3/5] w-full animate-pulse rounded-2xl bg-gray-200" />
+            <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+            <div class="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
+          </div>
         </div>
 
         <!-- Fade edges -->
