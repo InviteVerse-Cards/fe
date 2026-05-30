@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { EventInfoConfig, ThemeConfig, Ceremony } from '@/types/section.types'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
 import { buildGoogleMapsEmbedUrl, buildGoogleMapsOpenUrl, getGoogleMapsApiKey } from '@/utils/googleMaps'
+import { useEditorStore } from '@/stores/editor.store'
 
 const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean; category?: string }>()
 const cfg = computed(() => props.config as unknown as EventInfoConfig)
@@ -41,6 +42,25 @@ function getOpenUrl(c: Ceremony) {
     placeId: c.place_id,
   })
 }
+
+const gridClass = computed(() => {
+  const hasMultiple = (!props.category || props.category === 'wedding') && cfg.value.ceremonies?.length > 1
+  if (!hasMultiple) return 'grid-cols-1 max-w-md mx-auto w-full'
+
+  if (props.isPreview) {
+    try {
+      const editorStore = useEditorStore()
+      if (editorStore.previewMode === 'mobile') {
+        return 'grid-cols-1 max-w-md mx-auto w-full'
+      }
+    } catch (e) {
+      console.warn('Error reading editorStore previewMode:', e)
+    }
+  }
+
+  // default on mobile: grid-cols-1, md and up: grid-cols-2
+  return 'grid-cols-1 md:grid-cols-2 w-full'
+})
 </script>
 
 <template>
@@ -91,7 +111,7 @@ function getOpenUrl(c: Ceremony) {
       </div>
 
       <!-- Ceremony cards -->
-      <div :class="['grid gap-6', (!props.category || props.category === 'wedding') && cfg.ceremonies?.length > 1 ? 'sm:grid-cols-2' : 'grid-cols-1 max-w-md mx-auto w-full']">
+      <div :class="['grid gap-6', gridClass]">
         <div
           v-for="(ceremony, i) in cfg.ceremonies"
           :key="ceremony.name"
