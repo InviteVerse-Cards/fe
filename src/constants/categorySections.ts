@@ -29,7 +29,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
 export const CATEGORY_SECTIONS: Record<string, SectionType[]> = {
   wedding: [
     'hero', 'couple_images', 'family_info', 'event_info', 'gallery',
-    'timeline', 'countdown', 'rsvp', 'map', 'bank_transfer', 'music', 'wishes',
+    'timeline', 'countdown', 'rsvp', 'bank_transfer', 'music', 'wishes',
   ],
   birthday: [
     'hero', 'event_info', 'gallery', 'countdown', 'rsvp', 'bank_transfer', 'music', 'wishes',
@@ -44,7 +44,7 @@ export const CATEGORY_SECTIONS: Record<string, SectionType[]> = {
     'hero', 'event_info', 'gallery', 'rsvp', 'bank_transfer', 'music', 'wishes',
   ],
   corporate: [
-    'hero', 'event_info', 'gallery', 'countdown', 'rsvp', 'map', 'bank_transfer', 'music', 'wishes',
+    'hero', 'event_info', 'gallery', 'countdown', 'rsvp', 'bank_transfer', 'music', 'wishes',
   ],
 }
 

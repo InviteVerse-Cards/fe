@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { EventInfoConfig, ThemeConfig } from '@/types/section.types'
+import type { EventInfoConfig, ThemeConfig, Ceremony } from '@/types/section.types'
 import FloralDecoration from '@/components/invitation/FloralDecoration.vue'
+import { buildGoogleMapsEmbedUrl, buildGoogleMapsOpenUrl, getGoogleMapsApiKey } from '@/utils/googleMaps'
 
 const props = defineProps<{ config: Record<string, unknown>; theme: ThemeConfig; isPreview?: boolean; category?: string }>()
 const cfg = computed(() => props.config as unknown as EventInfoConfig)
@@ -20,6 +21,25 @@ function formatDate(dateStr: string) {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     })
   } catch { return dateStr }
+}
+
+function getEmbedUrl(c: Ceremony) {
+  return buildGoogleMapsEmbedUrl({
+    apiKey: getGoogleMapsApiKey(),
+    address: c.address,
+    lat: c.lat,
+    lng: c.lng,
+    placeId: c.place_id,
+  })
+}
+
+function getOpenUrl(c: Ceremony) {
+  return buildGoogleMapsOpenUrl({
+    address: c.address,
+    lat: c.lat,
+    lng: c.lng,
+    placeId: c.place_id,
+  })
 }
 </script>
 
@@ -114,6 +134,35 @@ function formatDate(dateStr: string) {
                 <div>
                   <p class="font-semibold">{{ ceremony.venue }}</p>
                   <p v-if="ceremony.address" class="mt-0.5 text-xs opacity-60">{{ ceremony.address }}</p>
+                </div>
+              </div>
+
+              <!-- Map Embed for this ceremony -->
+              <div v-if="ceremony.lat && ceremony.lng" class="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                <div class="relative overflow-hidden rounded-xl border border-gray-100 shadow-sm" style="height: 200px">
+                  <iframe
+                    :src="getEmbedUrl(ceremony)"
+                    class="h-full w-full"
+                    style="border: 0"
+                    allowfullscreen
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Bản đồ địa điểm"
+                  />
+                </div>
+                <div class="text-center">
+                  <a
+                    :href="getOpenUrl(ceremony)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:opacity-85"
+                    :style="{ borderColor: theme.primary_color, color: theme.primary_color }"
+                  >
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Mở Google Maps
+                  </a>
                 </div>
               </div>
             </div>

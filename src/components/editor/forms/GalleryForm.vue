@@ -31,7 +31,7 @@ function removeImage(i: number) {
 <template>
   <div class="space-y-6">
     <!-- Layout selection -->
-    <div>
+    <!-- <div>
       <label class="mb-1.5 block text-sm font-semibold text-gray-700">Bố cục hiển thị</label>
       <div class="grid grid-cols-3 gap-2">
         <button
@@ -46,7 +46,7 @@ function removeImage(i: number) {
           {{ l }}
         </button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Upload section -->
     <div>

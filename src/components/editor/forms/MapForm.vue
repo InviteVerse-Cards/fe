@@ -3,27 +3,42 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useEditorStore } from '@/stores/editor.store'
 import type { MapConfig } from '@/types/section.types'
 import AppInput from '@/components/common/AppInput.vue'
+import { getGoogleMapsApiKey, loadGoogleMapsPlaces, getGoongApiKey, searchGoongPlaces, getGoongPlaceDetail } from '@/utils/googleMaps'
 
 const props = defineProps<{ config: Record<string, unknown>; sectionType: string }>()
 const editorStore = useEditorStore()
 const form = ref<MapConfig>({ ...(props.config as MapConfig) })
 const showManualEmbed = ref(Boolean(form.value.embed_url))
 
-// Photon Search
+// Unified Search Suggestion Interface
+interface MapSuggestion {
+  place_id: string
+  display_name: string
+  name: string
+  lat?: number
+  lng?: number
+  isGoogle?: boolean
+  isGoong?: boolean
+}
+
 const searchQuery = ref('')
 const isSearching = ref(false)
 const searchError = ref('')
-
-interface PhotonSuggestion {
-  place_id: string | number
-  display_name: string
-  name: string
-  lat: string
-  lon: string
-}
-
-const suggestions = ref<PhotonSuggestion[]>([])
+const suggestions = ref<MapSuggestion[]>([])
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Google Maps status and API helpers
+const googleMapsStatus = ref<'idle' | 'loading' | 'loaded' | 'failed'>('idle')
+const autocompleteService = ref<any>(null)
+const placesService = ref<any>(null)
+
+const isUsingGoogleMaps = computed(() => {
+  return !!getGoogleMapsApiKey() && googleMapsStatus.value !== 'failed'
+})
+
+const isUsingGoong = computed(() => {
+  return !!getGoongApiKey()
+})
 
 watch(() => props.config, (v) => { form.value = { ...(v as MapConfig) } }, { deep: true })
 
@@ -67,7 +82,7 @@ function onSearchInput() {
   }, 500)
 }
 
-async function searchPlaces(query: string) {
+async function runPhotonSearch(query: string) {
   isSearching.value = true
   searchError.value = ''
   try {
@@ -92,11 +107,12 @@ async function searchPlaces(query: string) {
       const displayAddress = addressParts.join(', ')
 
       return {
-        place_id: props.osm_id || Math.random().toString(),
+        place_id: props.osm_id?.toString() || Math.random().toString(),
         display_name: displayAddress || props.name || '',
         name: props.name || 'Địa điểm không tên',
-        lat: coords[1].toString(),
-        lon: coords[0].toString(),
+        lat: coords[1],
+        lng: coords[0],
+        isGoogle: false
       }
     })
   } catch (err: any) {
@@ -107,13 +123,92 @@ async function searchPlaces(query: string) {
   }
 }
 
-function selectSuggestion(item: PhotonSuggestion) {
+async function runGoongSearch(query: string) {
+  const apiKey = getGoongApiKey()
+  if (!apiKey) {
+    await runPhotonSearch(query)
+    return
+  }
+
+  isSearching.value = true
+  searchError.value = ''
+  try {
+    const predictions = await searchGoongPlaces(query, apiKey)
+    suggestions.value = predictions.map((pred: any) => ({
+      place_id: pred.place_id,
+      display_name: pred.description,
+      name: pred.structured_formatting?.main_text || pred.description,
+      isGoong: true
+    }))
+  } catch (err: any) {
+    console.error('Error with Goong Maps search, falling back to Photon:', err)
+    await runPhotonSearch(query)
+  } finally {
+    isSearching.value = false
+  }
+}
+
+async function searchPlaces(query: string) {
+  isSearching.value = true
+  searchError.value = ''
+
+  const apiKey = getGoogleMapsApiKey()
+  if (!apiKey || googleMapsStatus.value === 'failed') {
+    await runGoongSearch(query)
+    return
+  }
+
+  try {
+    if (googleMapsStatus.value !== 'loaded') {
+      googleMapsStatus.value = 'loading'
+      await loadGoogleMapsPlaces(apiKey)
+      googleMapsStatus.value = 'loaded'
+    }
+
+    const g = (window as any).google
+    if (!g?.maps?.places) {
+      throw new Error('Google Maps places library could not be loaded')
+    }
+
+    if (!autocompleteService.value || !placesService.value) {
+      autocompleteService.value = new g.maps.places.AutocompleteService()
+      placesService.value = new g.maps.places.PlacesService(document.createElement('div'))
+    }
+
+    autocompleteService.value.getPlacePredictions(
+      { input: query, language: 'vi', region: 'VN' },
+      (predictions: any[] | null, status: string) => {
+        if (status === 'OK' && predictions) {
+          suggestions.value = predictions.map((pred: any) => ({
+            place_id: pred.place_id,
+            display_name: pred.description,
+            name: pred.structured_formatting?.main_text || pred.description,
+            isGoogle: true
+          }))
+          isSearching.value = false
+        } else {
+          console.warn('Google Maps Autocomplete status:', status, 'falling back to Goong')
+          if (status !== 'ZERO_RESULTS') {
+            googleMapsStatus.value = 'failed'
+          }
+          void runGoongSearch(query)
+        }
+      }
+    )
+  } catch (err: any) {
+    console.error('Error with Google Maps search, falling back to Goong:', err)
+    googleMapsStatus.value = 'failed'
+    await runGoongSearch(query)
+  }
+}
+
+function applySuggestionDirectly(item: MapSuggestion) {
   const patch: Partial<MapConfig> = {
     venue_name: item.name,
     address: item.display_name || item.name,
-    place_id: '',
-    lat: parseFloat(item.lat),
-    lng: parseFloat(item.lon),
+    place_id: (item.isGoogle || item.isGoong) ? item.place_id : '',
+    lat: item.lat,
+    lng: item.lng,
     embed_url: '',
   }
 
@@ -121,9 +216,89 @@ function selectSuggestion(item: PhotonSuggestion) {
   showManualEmbed.value = false
   editorStore.updateSectionConfig('map', patch as Record<string, unknown>)
 
-  // Clear suggestions and search input
   suggestions.value = []
   searchQuery.value = ''
+}
+
+async function selectSuggestion(item: MapSuggestion) {
+  if (item.isGoogle) {
+    isSearching.value = true
+    searchError.value = ''
+    try {
+      if (!placesService.value) {
+        throw new Error('PlacesService is not initialized')
+      }
+
+      placesService.value.getDetails(
+        {
+          placeId: item.place_id,
+          fields: ['geometry', 'name', 'formatted_address'],
+        },
+        (place: any, status: string) => {
+          isSearching.value = false
+          if (status === 'OK' && place) {
+            const latVal = place.geometry?.location?.lat()
+            const lngVal = place.geometry?.location?.lng()
+
+            const patch: Partial<MapConfig> = {
+              venue_name: place.name || item.name,
+              address: place.formatted_address || item.display_name || item.name,
+              place_id: item.place_id,
+              lat: typeof latVal === 'number' ? latVal : undefined,
+              lng: typeof lngVal === 'number' ? lngVal : undefined,
+              embed_url: '',
+            }
+
+            form.value = { ...form.value, ...patch }
+            showManualEmbed.value = false
+            editorStore.updateSectionConfig('map', patch as Record<string, unknown>)
+            suggestions.value = []
+            searchQuery.value = ''
+          } else {
+            console.error('Google Maps Place Details failed with status:', status)
+            applySuggestionDirectly(item)
+          }
+        }
+      )
+    } catch (err: any) {
+      console.error('Error fetching Google Place details:', err)
+      isSearching.value = false
+      applySuggestionDirectly(item)
+    }
+  } else if (item.isGoong) {
+    isSearching.value = true
+    searchError.value = ''
+    try {
+      const apiKey = getGoongApiKey()
+      const detail = await getGoongPlaceDetail(item.place_id, apiKey)
+      if (detail && detail.result) {
+        const result = detail.result
+        const patch: Partial<MapConfig> = {
+          venue_name: result.name || item.name,
+          address: result.formatted_address || item.display_name || item.name,
+          place_id: item.place_id,
+          lat: result.geometry?.location?.lat,
+          lng: result.geometry?.location?.lng,
+          embed_url: '',
+        }
+
+        form.value = { ...form.value, ...patch }
+        showManualEmbed.value = false
+        editorStore.updateSectionConfig('map', patch as Record<string, unknown>)
+        suggestions.value = []
+        searchQuery.value = ''
+      } else {
+        applySuggestionDirectly(item)
+      }
+    } catch (err: any) {
+      console.error('Error fetching Goong Place details:', err)
+      applySuggestionDirectly(item)
+    } finally {
+      isSearching.value = false
+    }
+  } else {
+    applySuggestionDirectly(item)
+  }
 }
 
 onBeforeUnmount(() => {
@@ -134,7 +309,9 @@ onBeforeUnmount(() => {
 <template>
   <div class="space-y-4">
     <div class="space-y-1.5 relative">
-      <label class="block text-sm font-medium text-gray-700">Tìm địa điểm (Miễn phí, không cần API key)</label>
+      <label class="block text-sm font-medium text-gray-700">
+        Tìm địa điểm {{ isUsingGoogleMaps ? '(Sử dụng Google Maps)' : isUsingGoong ? '(Sử dụng Goong Maps)' : '(Miễn phí, không cần API key)' }}
+      </label>
       <div class="relative">
         <input
           type="text"
