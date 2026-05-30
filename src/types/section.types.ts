@@ -87,6 +87,9 @@ export interface Ceremony {
   venue: string
   address: string
   map_url?: string
+  lat?: number
+  lng?: number
+  place_id?: string
 }
 
 export interface EventInfoConfig {
@@ -179,7 +182,7 @@ export interface BankTransferConfig {
 
 export const SECTION_LABELS: Record<SectionType, string> = {
   hero: 'Thông tin cơ bản',
-  event_info: 'Thông tin lễ cưới',
+  event_info: 'Thông tin buổi lễ',
   family_info: 'Thông tin gia đình',
   gallery: 'Album ảnh',
   timeline: 'Hành trình tình yêu',
