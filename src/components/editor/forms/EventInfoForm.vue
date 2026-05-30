@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useEditorStore } from '@/stores/editor.store'
-import type { EventInfoConfig, Ceremony } from '@/types/section.types'
+import type { EventInfoConfig } from '@/types/section.types'
 import AppInput from '@/components/common/AppInput.vue'
 import {
   getGoogleMapsApiKey,
