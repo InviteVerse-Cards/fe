@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+
+declare const __APP_VERSION__: string
+const appVersion = __APP_VERSION__
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/auth.service'
@@ -61,6 +64,9 @@ async function submit() {
           InviteVerse
         </RouterLink>
       </div>
+
+      <!-- Version badge -->
+      <span class="absolute bottom-3 right-3 font-mono text-[11px] text-gray-300 select-none">v{{ appVersion }}</span>
 
       <!-- Main Login Card Area -->
       <div class="mx-auto w-full max-w-sm">
