@@ -5,6 +5,9 @@ import { createHead } from '@vueuse/head'
 import router from '@/router'
 import App from './App.vue'
 import './style.css'
+import { initAnalytics } from '@/utils/analytics'
+
+initAnalytics()
 
 const queryClient = new QueryClient({
   defaultOptions: {

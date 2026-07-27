@@ -10,7 +10,8 @@ import type {
   PopularTemplate,
   CategoryStats,
   OnlineUsersStats,
-  RevenueStats
+  RevenueStats,
+  GeographicStats
 } from '@/services/admin.service'
 import { useUIStore } from '@/stores/ui'
 import AppSpinner from '@/components/common/AppSpinner.vue'
@@ -29,6 +30,7 @@ const popularTemplates = ref<PopularTemplate[]>([])
 const cardsByCategory = ref<CategoryStats[]>([])
 const onlineUsers = ref<OnlineUsersStats | null>(null)
 const revenueStats = ref<RevenueStats | null>(null)
+const geoStats = ref<GeographicStats | null>(null)
 
 // Format currency
 function formatVND(val: number) {
@@ -57,14 +59,16 @@ async function loadSystemData() {
 async function loadTrafficData() {
   isLoading.value = true
   try {
-    const [dt, ht, ou] = await Promise.all([
+    const [dt, ht, ou, geo] = await Promise.all([
       adminService.getDailyTraffic(),
       adminService.getHourlyTraffic(),
       adminService.getOnlineUsers(),
+      adminService.getGeographicStats(),
     ])
     dailyTraffic.value = dt
     hourlyTraffic.value = ht
     onlineUsers.value = ou
+    geoStats.value = geo
   } catch (err) {
     ui.toast.error('Không thể tải dữ liệu lượng truy cập')
   } finally {
@@ -674,6 +678,68 @@ function resolvePageLabel(page: string) {
                 Chưa có nhật ký online trong 3 phút qua
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Geographic Distribution Row -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-gray-900">📍 Phân bổ địa lý (Top Tỉnh / Thành phố)</h2>
+              <p class="text-xs text-gray-500 mt-0.5">Thống kê khu vực có lượng truy cập nhiều nhất để hỗ trợ định hướng Target Quảng cáo (Ads)</p>
+            </div>
+            <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+              GeoIP Tracking Active
+            </span>
+          </div>
+
+          <div v-if="geoStats?.cities?.length" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Cities Table -->
+            <div class="overflow-x-auto border border-gray-100 rounded-xl">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="bg-gray-50 text-gray-500 border-b border-gray-100 text-left">
+                    <th class="py-2.5 px-4 font-semibold">Tỉnh / Thành phố</th>
+                    <th class="py-2.5 px-4 font-semibold">Quốc gia</th>
+                    <th class="py-2.5 px-4 font-semibold text-right">Lượt truy cập</th>
+                    <th class="py-2.5 px-4 font-semibold text-right">Khách độc lập</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <tr v-for="city in geoStats.cities" :key="city.city" class="hover:bg-gray-50/60 transition-colors">
+                    <td class="py-2 px-4 font-medium text-gray-900 flex items-center gap-2">
+                      <span class="text-base">🏢</span>
+                      {{ city.city }}
+                    </td>
+                    <td class="py-2 px-4 text-gray-500">{{ city.country }}</td>
+                    <td class="py-2 px-4 text-right font-bold text-indigo-600">{{ city.visits.toLocaleString('vi-VN') }}</td>
+                    <td class="py-2 px-4 text-right text-gray-600">{{ city.unique_visitors.toLocaleString('vi-VN') }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Country breakdown -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-700">Top Quốc gia có lượt xem cao nhất:</p>
+              <div class="space-y-2">
+                <div v-for="c in geoStats.countries" :key="c.country" class="space-y-1">
+                  <div class="flex justify-between text-xs font-medium text-gray-700">
+                    <span>Quốc gia: {{ c.country }}</span>
+                    <span class="font-bold text-indigo-600">{{ c.visits }} lượt</span>
+                  </div>
+                  <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div
+                      class="bg-indigo-600 h-2 rounded-full transition-all"
+                      :style="{ width: `${Math.min(100, (c.visits / (geoStats.countries[0]?.visits || 1)) * 100)}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-10 text-xs text-gray-400 italic">
+            Đang thu thập thêm dữ liệu vị trí địa lý...
           </div>
         </div>
       </div>
