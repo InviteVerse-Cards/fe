@@ -97,6 +97,15 @@ export interface GeographicStats {
   countries: { country: string; visits: number }[]
 }
 
+export interface AdminIpLog {
+  ip_address: string
+  city: string | null
+  country: string | null
+  total_views: number
+  last_active: string
+  users_associated: string | null
+}
+
 export interface AdminInvitation {
   id: number
   uuid: string
@@ -232,6 +241,16 @@ export const adminService = {
 
   async getGeographicStats(): Promise<GeographicStats> {
     const { data } = await api.get('/admin/stats/geographic')
+    return data.data
+  },
+
+  async getIpLogs(params: { page?: number; limit?: number; q?: string }): Promise<PaginatedData<AdminIpLog>> {
+    const { data } = await api.get('/admin/stats/ip-logs', { params })
+    return data.data
+  },
+
+  async cleanupLogs(days: number): Promise<{ deleted_page_views: number; deleted_feature_events: number; days_retained: number }> {
+    const { data } = await api.post('/admin/stats/cleanup-logs', { days })
     return data.data
   },
 
