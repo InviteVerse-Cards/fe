@@ -80,6 +80,7 @@ const router = createRouter({
         { path: 'templates/:uuid/editor', name: 'AdminTemplateEditor',   component: () => import('@/pages/admin/TemplateEditorPage.vue') },
         { path: 'categories',             name: 'AdminCategories',        component: () => import('@/pages/admin/CategoryTemplatesPage.vue') },
         { path: 'music',                   name: 'AdminMusic',            component: () => import('@/pages/admin/MusicAdminPage.vue') },
+        { path: 'ip-logs',                 name: 'AdminIpLogs',           component: () => import('@/pages/admin/IpLogsPage.vue') },
       ],
     },
 
