@@ -92,6 +92,11 @@ export interface RevenueStats {
   packages: { package_name: string; count: number; revenue: number }[]
 }
 
+export interface GeographicStats {
+  cities: { city: string; country: string; visits: number; unique_visitors: number }[]
+  countries: { country: string; visits: number }[]
+}
+
 export interface AdminInvitation {
   id: number
   uuid: string
@@ -222,6 +227,11 @@ export const adminService = {
 
   async getRevenueStats(): Promise<RevenueStats> {
     const { data } = await api.get('/admin/stats/revenue')
+    return data.data
+  },
+
+  async getGeographicStats(): Promise<GeographicStats> {
+    const { data } = await api.get('/admin/stats/geographic')
     return data.data
   },
 

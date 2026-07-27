@@ -107,4 +107,10 @@ router.beforeEach(async to => {
   }
 })
 
+router.afterEach(to => {
+  import('@/utils/analytics').then(({ trackPageView }) => {
+    trackPageView(to.fullPath)
+  })
+})
+
 export default router
