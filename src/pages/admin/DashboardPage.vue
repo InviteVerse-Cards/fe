@@ -14,6 +14,7 @@ import type {
   GeographicStats
 } from '@/services/admin.service'
 import { useUIStore } from '@/stores/ui'
+import { formatTime } from '@/utils/format'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 
 const ui = useUIStore()
@@ -671,7 +672,7 @@ function resolvePageLabel(page: string) {
                   <span class="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700 text-[10px] max-w-32 truncate">
                     {{ resolvePageLabel(usr.page || '') }}
                   </span>
-                  <p class="text-[10px] text-gray-400 mt-0.5">seen {{ new Date(usr.last_seen).toLocaleTimeString('vi-VN') }}</p>
+                  <p class="text-[10px] text-gray-400 mt-0.5">seen {{ formatTime(usr.last_seen) }}</p>
                 </div>
               </div>
               <div v-if="!onlineUsers?.recent_users?.length" class="text-center py-10 text-xs text-gray-400 italic">

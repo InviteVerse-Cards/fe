@@ -18,6 +18,17 @@ export function formatDateTime(dateStr: string | Date | null | undefined): strin
   })
 }
 
+export function formatTime(dateStr: string | Date | null | undefined): string {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+}
+
 export function timeUntil(dateStr: string): string {
   const diff = new Date(dateStr).getTime() - Date.now()
   if (diff <= 0) return 'Đã hết hạn'
